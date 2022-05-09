@@ -7,8 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:wazeloquent/wazeloquent.dart';
 
 void main() async {
-  DB.instance.onCreate([UserEloquent.onCreate]);
-  DB.instance.onOpen([UserEloquent.onOpen]);
+  var db = DB.instance;
+  db.setDbVersion(1); // set db version
+  db.setFileName('example.db'); // set file
+  db.onCreate([UserEloquent.onCreate]);
+  db.onOpen([UserEloquent.onOpen]);
   runApp(const MyApp());
 }
 

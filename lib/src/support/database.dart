@@ -62,6 +62,8 @@ class DB {
   static List<Future<Function(Database, int)>> _onCreate = [];
   static List<Future<Function(Database)>> _onOpen = [];
   static List<Future<Function(Database)>> _onConfigure = [];
+  static List<Future<Function(Database, int, int)>> _onUpgrade = [];
+  static List<Future<Function(Database, int, int)>> _onDowngrade = [];
 
   static Database? _database;
 
@@ -75,6 +77,14 @@ class DB {
 
   void onConfigure(List<Future<Function(Database)>> fn) {
     _onConfigure.addAll(fn);
+  }
+
+  void onUpgrade(List<Future<Function(Database, int, int)>> fn) {
+    _onUpgrade.addAll(fn);
+  }
+
+  void onDowngrade(List<Future<Function(Database, int, int)>> fn) {
+    _onDowngrade.addAll(fn);
   }
 
   void setFileName(String name) {
@@ -138,6 +148,14 @@ class DB {
     }, onConfigure: (Database db) async {
       for (var fn in _onConfigure) {
         Function.apply(await fn, [db]);
+      }
+    }, onUpgrade: (Database db, int a, int b) async {
+      for (var fn in _onUpgrade) {
+        Function.apply(await fn, [db, a, b]);
+      }
+    }, onDowngrade: (Database db, int a, int b) async {
+      for (var fn in _onDowngrade) {
+        Function.apply(await fn, [db, a, b]);
       }
     });
   }

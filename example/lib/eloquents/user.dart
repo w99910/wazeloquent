@@ -6,7 +6,7 @@ class UserEloquent extends Eloquent {
       ['id', 'name', 'password', 'createdAt', 'updatedAt'];
 
   @override
-  String getPrimaryColumn() => 'id';
+  String get getPrimaryColumn => 'id';
 
   @override
   String get tableName => 'users';

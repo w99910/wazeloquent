@@ -7,7 +7,7 @@ abstract class Eloquent {
 
   static Future<Database> get getDatabase async => DB.instance.getDB();
 
-  String getPrimaryColumn();
+  String get getPrimaryColumn;
 
   String? _orderBy;
 
@@ -18,8 +18,6 @@ abstract class Eloquent {
   Sort? _sort;
 
   int? _offset;
-
-  _QueryAction? _queryAction;
 
   int? _limit;
 
@@ -34,7 +32,6 @@ abstract class Eloquent {
     _sort = null;
     _offset = null;
     _limit = null;
-    _queryAction = null;
     _selectedColumns = null;
     _wheres = [];
   }
@@ -228,7 +225,7 @@ abstract class Eloquent {
     var results = await _db.query(
       tableName,
       columns: columns,
-      where: getPrimaryColumn() + ' = ?',
+      where: getPrimaryColumn + ' = ?',
       whereArgs: [primaryKeyValue],
     );
     if (results.isNotEmpty) {
@@ -267,7 +264,7 @@ abstract class Eloquent {
     Database _db = await getDatabase;
     return await _db.delete(
       tableName,
-      where: (column ?? getPrimaryColumn()) + ' = ?',
+      where: (column ?? getPrimaryColumn) + ' = ?',
       whereArgs: [value],
     );
   }
@@ -304,7 +301,7 @@ abstract class Eloquent {
     final db = await getDatabase;
     List result = await _where(check);
     if (result.isNotEmpty) {
-      return int.tryParse(result.first[getPrimaryColumn()]);
+      return int.tryParse(result.first[getPrimaryColumn]);
     }
     create.addAll(check);
     return await db.insert(tableName, create);
@@ -349,18 +346,11 @@ abstract class Eloquent {
     final db = await getDatabase;
     return await db.rawUpdate(q);
   }
-
-  Future<int> updateAll(Map<String, Object?> object) async {
-    final db = await getDatabase;
-    return await db.update(tableName, object);
-  }
 }
 
 enum Sort { ascending, descending }
 
 enum Operator { equal, greaterThan, lessThan, notEqual, like }
-
-enum _QueryAction { create, update, delete }
 
 class _Where {
   String columnName;
