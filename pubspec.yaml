@@ -1,7 +1,8 @@
 name: wazeloquent
 description: Laravel Eloquent Wrapper For Flutter
-version: 0.0.1
-homepage:
+homepage: https://github.com/w99910/wazeloquent/tree/master
+repository: https://github.com/w99910/wazeloquent/tree/master
+version: 0.0.1+1
 
 environment:
   sdk: ">=2.16.2 <3.0.0"
@@ -10,9 +11,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  path: ^1.8.0
   path_provider: ^2.0.9
   sqflite: ^2.0.2+1
-  yaml: ^3.1.0
 
 dev_dependencies:
   flutter_test:

@@ -382,6 +382,6 @@ Available methods are as follows.
 
 > Check example [here](https://github.com/w99910/wazeloquent/tree/master/example)
 
-&nbsp;&nbsp;&nbsp;This package is develped bc of my future flutter projects and it has only small features for now. I am planning to implement `relationship` features in future.
+This package is develped bc of my future flutter projects and it has only small features for now. I am planning to implement `relationship` features in future.
 <br>
-&nbsp;&nbsp;&nbsp;I would be really glad if this package helps you. Cheers.
+I would be really glad if this package helps you. Cheers.

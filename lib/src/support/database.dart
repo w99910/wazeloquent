@@ -159,13 +159,13 @@ class DB {
       for (var fn in _onConfigure) {
         Function.apply(await fn, [db]);
       }
-    }, onUpgrade: (Database db, int a, int b) async {
+    }, onUpgrade: (Database db, int oldVersion, int newVersion) async {
       for (var fn in _onUpgrade) {
-        Function.apply(await fn, [db, a, b]);
+        Function.apply(await fn, [db, oldVersion, newVersion]);
       }
-    }, onDowngrade: (Database db, int a, int b) async {
+    }, onDowngrade: (Database db, int oldVersion, int newVersion) async {
       for (var fn in _onDowngrade) {
-        Function.apply(await fn, [db, a, b]);
+        Function.apply(await fn, [db, oldVersion, newVersion]);
       }
     });
   }
