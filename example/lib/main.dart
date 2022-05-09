@@ -51,6 +51,11 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
+  showSnack(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
   createUser() async {
     var data = await userEloquent.create(values: {
       'name': names[Random().nextInt(4)],
@@ -67,9 +72,13 @@ class _MyHomePageState extends State<MyHomePage> {
     //   'createdAt': DateTime.now().toIso8601String(),
     //   'updatedAt': DateTime.now().toIso8601String()
     // });
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text('Created id - $data')));
+    showSnack('Created id - $data');
     loadUsers();
+  }
+
+  orderUser() async {
+    var data = await userEloquent.orderByDesc('name').get();
+    updateState(data);
   }
 
   deleteUser() async {
@@ -77,8 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
       User user = users.first;
       var response =
           await userEloquent.where('id', user.id.toString()).delete();
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Total deleted - ' + response.toString())));
+      showSnack('Total deleted - ' + response.toString());
       loadUsers();
     }
 
@@ -98,8 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
       var response = await userEloquent
           .where('id', user.id.toString())
           .update({'name': 'Micheal'});
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Total updated - ' + response.toString())));
+      showSnack('Total updated - ' + response.toString());
       loadUsers();
     }
   }
@@ -107,12 +114,10 @@ class _MyHomePageState extends State<MyHomePage> {
   filterUser() async {
     var data = await userEloquent.where('name', 'Dean').get();
     if (data == null || data.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('No user found')));
+      showSnack('No user found');
       return;
     }
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Dean User Filter')));
+    showSnack('Dean User Filter');
     updateState(data);
   }
 
@@ -121,9 +126,22 @@ class _MyHomePageState extends State<MyHomePage> {
     updateState(data);
   }
 
-  updateState(List<Map<String, Object?>> data) {
+  skipUsers() async {
+    var data = await userEloquent.skip(1).get();
+    updateState(data);
+  }
+
+  take() async {
+    var data = await userEloquent.take(2).get();
+    updateState(data);
+  }
+
+  updateState(List<Map<String, Object?>>? data) {
+    if (data == null) {
+      showSnack('Empty');
+    }
     users = [];
-    for (var user in data) {
+    for (var user in data!) {
       users.add(User(
           id: int.parse(user['id'].toString()),
           name: user['name'].toString(),
@@ -131,7 +149,6 @@ class _MyHomePageState extends State<MyHomePage> {
           createdAt: DateTime.parse(user['createdAt'].toString()),
           updatedAt: DateTime.parse(user['updatedAt'].toString())));
     }
-    inspect(users);
 
     setState(() {
       users = users;
@@ -149,8 +166,10 @@ class _MyHomePageState extends State<MyHomePage> {
         width: size.width * 0.95,
         height: size.height,
         child: Column(children: [
+          const SizedBox(height: 20),
           SizedBox(
-              height: size.height * 0.5,
+              height: size.height * 0.45,
+              width: size.width * 0.7,
               child: ListView.builder(
                   itemCount: users.length,
                   itemBuilder: (_, int index) {
@@ -161,9 +180,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     );
                   })),
           SizedBox(
-            height: size.height * 0.3,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            height: size.height * 0.4,
+            width: size.width * 0.7,
+            child: Wrap(
+              spacing: 8,
               children: [
                 ElevatedButton(
                     onPressed: createUser, child: const Text('Create User')),
@@ -174,7 +194,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 ElevatedButton(
                     onPressed: filterUser, child: const Text('Filter User')),
                 ElevatedButton(
-                    onPressed: loadUsers, child: const Text('Reload'))
+                    onPressed: orderUser, child: const Text('Order desc')),
+                ElevatedButton(
+                    onPressed: loadUsers, child: const Text('Reload')),
+                ElevatedButton(onPressed: skipUsers, child: const Text('Skip')),
+                ElevatedButton(
+                    onPressed: skipUsers, child: const Text('Take 2'))
               ],
             ),
           )

@@ -123,9 +123,9 @@ abstract class Eloquent {
   }
 
   String _getLimitOffset(String q) {
-    if (_limit != null) {
-      q += ' LIMIT ';
-      q += _offset != null ? '$_offset, $_limit' : '$_limit';
+    q += ' LIMIT ${_limit ?? '-1'}';
+    if (_offset != null) {
+      q += ' OFFSET $_offset';
     }
     return q;
   }
@@ -161,9 +161,13 @@ abstract class Eloquent {
     return this;
   }
 
-  Eloquent limit(int? limit, {int? offset}) {
-    _limit = limit;
+  Eloquent skip(int? offset) {
     _offset = offset;
+    return this;
+  }
+
+  Eloquent take(int? count) {
+    _limit = count;
     return this;
   }
 

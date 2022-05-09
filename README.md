@@ -17,13 +17,13 @@ WazEloquent is designed to deal with database without writing custom querys on y
 
 ## Features
 
-- You don't need to create your own database class. Just interact with table by using `DB`'s methods such as `onCreate`,`onOpen`,`onConfigure`,`onUpgrade`,`onDowngrade`.
+- You don't need to create your own database class. Just interact with table by using `DB`'s methods such as `onCreate`, `onOpen`, `onConfigure`, `onUpgrade`, `onDowngrade`.
 - Eazy to deal with table without writing query on your own.
 - Laravel Eloquent alike methods.
 
 ## Getting started
 
-- ### Extend Eloquent And Configure Necessary Methods
+- ### Extend eloquent and configure required methods
 
   e.g
 
@@ -81,25 +81,25 @@ WazEloquent is designed to deal with database without writing custom querys on y
   class UserEloquent extends Eloquent {
     static Future<Function(Database)> onOpen = Future(() {
         return (Database db) async {
-        await DB.createTable(db, tableName: 'users', columns: {
-            'id': DB.idType,
-            'name': DB.stringType,
-            'password': DB.stringType,
-            'createdAt': DB.stringType,
-            'updatedAt': DB.stringType,
-        });
+        await DB.createTable(db, tableName: 'users',columns: {
+          'id': [ColumnType.idType, ColumnType.primaryKey],
+          'name': [ColumnType.stringType, ColumnType.notNull],
+          'password': [ColumnType.stringType, ColumnType.notNull],
+          'createdAt': [ColumnType.stringType, ColumnType.notNull],
+          'updatedAt': [ColumnType.stringType, ColumnType.notNull],
+      });
         };
     });
 
     static Future<Function(Database, int)> onCreate = Future(() {
         return (Database db, int version) async {
-        await DB.createTable(db, tableName: 'users', columns: {
-            'id': DB.idType,
-            'name': DB.stringType,
-            'password': DB.stringType,
-            'createdAt': DB.stringType,
-            'updatedAt': DB.stringType,
-        });
+        await DB.createTable(db, tableName: 'users',columns: {
+          'id': [ColumnType.idType, ColumnType.primaryKey],
+          'name': [ColumnType.stringType, ColumnType.notNull],
+          'password': [ColumnType.stringType, ColumnType.notNull],
+          'createdAt': [ColumnType.stringType, ColumnType.notNull],
+          'updatedAt': [ColumnType.stringType, ColumnType.notNull],
+      });
         };
     });
   }
@@ -126,7 +126,7 @@ Available methods are as follows.
 - [orderByDesc](#orderbyDesc)
 - [groupBy](#groupBy)
 - [groupByDesc](#groupByDesc)
-- [limit](#limit)
+- [take](#take)
 - [delete](#delete)
 - [deleteBy](#deleteBy)
 - [create](#create)
@@ -143,6 +143,10 @@ Available methods are as follows.
 <br>
 
 - ### where
+
+  Specify conditions.
+
+  > Always include `get()` method at the end of query. Otherwise query will not be executed.
 
   ```dart
   var userEloquent = UserEloquent();
@@ -162,14 +166,21 @@ Available methods are as follows.
 
 - ### orderBy
 
+  Sort rows in either descending or ascending order.
+
   ```dart
   var userEloquent = UserEloquent();
+
+  // sort users by 'name' column
+  userEloquent.orderBy('name').get();
 
   // sort users by 'name' column in descending order
   userEloquent.orderBy('name',sort:Sort.descending).get();
   ```
 
 - ### orderByDesc
+
+  Sort rows in descending order.
 
   ```dart
   var userEloquent = UserEloquent();
@@ -180,6 +191,8 @@ Available methods are as follows.
 
 - ### groupBy
 
+  Group rows by column.
+
   ```dart
   var userEloquent = UserEloquent();
 
@@ -189,6 +202,8 @@ Available methods are as follows.
 
 - ### groupByDesc
 
+  Group rows by column in descending order.
+
   ```dart
   var userEloquent = UserEloquent();
 
@@ -196,13 +211,26 @@ Available methods are as follows.
   userEloquent.groupByDesc('name').get();
   ```
 
-- ### limit
+- ### take
+
+  Limit the number of rows.
 
   ```dart
   var userEloquent = UserEloquent();
 
   // get first user where name is like john
-  userEloquent.where('name','%j%',operator:Operator.like).orderByDesc ('name').limit(1).get();
+  userEloquent.where('name','%j%',operator:Operator.like).orderByDesc ('name').take(1).get();
+  ```
+
+- ### skip
+
+  Skip a given number of results.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // get first user where name is like john
+  userEloquent.where('name','%j%',operator:Operator.like).orderByDesc('name').skip(1).take(10).get();
   ```
 
 - ### delete

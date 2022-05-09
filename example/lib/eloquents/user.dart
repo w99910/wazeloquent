@@ -14,11 +14,11 @@ class UserEloquent extends Eloquent {
   static Future<Function(Database)> onOpen = Future(() {
     return (Database db) async {
       await DB.createTable(db, tableName: 'users', columns: {
-        'id': DB.idType,
-        'name': DB.stringType,
-        'password': DB.stringType,
-        'createdAt': DB.stringType,
-        'updatedAt': DB.stringType,
+        'id': [ColumnType.idType],
+        'name': [ColumnType.stringType, ColumnType.notNull],
+        'password': [ColumnType.stringType, ColumnType.notNull],
+        'createdAt': [ColumnType.stringType, ColumnType.notNull],
+        'updatedAt': [ColumnType.stringType, ColumnType.notNull],
       });
     };
   });
@@ -26,11 +26,11 @@ class UserEloquent extends Eloquent {
   static Future<Function(Database, int)> onCreate = Future(() {
     return (Database db, int version) async {
       await DB.createTable(db, tableName: 'users', columns: {
-        'id': DB.idType,
-        'name': DB.stringType,
-        'password': DB.stringType,
-        'createdAt': DB.stringType,
-        'updatedAt': DB.stringType,
+        'id': [ColumnType.idType],
+        'name': [ColumnType.stringType, ColumnType.notNull],
+        'password': [ColumnType.stringType, ColumnType.notNull],
+        'createdAt': [ColumnType.stringType, ColumnType.notNull],
+        'updatedAt': [ColumnType.stringType, ColumnType.notNull],
       });
     };
   });

@@ -14,12 +14,17 @@ import 'package:sqflite/sqflite.dart';
 
 enum DBActions { setNull, setDefault, restrict, noAction, cascade }
 
-class DB {
+class ColumnType {
   static const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
-  static const boolType = 'BOOLEAN NOT NULL';
-  static const integerType = 'INTEGER NOT NULL';
-  static const stringType = 'TEXT NOT NULL';
+  static const notNull = 'NOT NULL';
+  static defaultValue(value) => 'DEFAULT "$value"';
+  static const primaryKey = 'PRIMARY KEY';
+  static const boolType = 'BOOLEAN';
+  static const integerType = 'INTEGER';
+  static const stringType = 'TEXT';
+}
 
+class DB {
   static String fileName = 'sqflite.db';
   static int version = 1;
 
@@ -114,6 +119,11 @@ class DB {
     columns.forEach((key, value) {
       if (value is Function) {
         string += value();
+      } else if (value is List<String>) {
+        string += key;
+        for (var type in value) {
+          string += ' $type';
+        }
       } else {
         string += '$key $value';
       }
