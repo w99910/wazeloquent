@@ -148,25 +148,25 @@ abstract class Eloquent {
     return await _db.rawQuery(q);
   }
 
-  Eloquent distinct(List<String> columnNames) {
+  Eloquent distinct(List<String>? columnNames) {
     _selectedColumns = columnNames;
     _distinct = true;
     return this;
   }
 
-  Eloquent limit(int limit, {int? offset}) {
+  Eloquent limit(int? limit, {int? offset}) {
     _limit = limit;
     _offset = offset;
     return this;
   }
 
-  Eloquent orderBy(String columnName, {Sort? sort}) {
+  Eloquent orderBy(String? columnName, {Sort? sort}) {
     _orderBy = columnName;
     _sort = sort;
     return this;
   }
 
-  Eloquent groupBy(String columnName) {
+  Eloquent groupBy(String? columnName) {
     _groupBy = columnName;
     return this;
   }
