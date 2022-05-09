@@ -127,6 +127,7 @@ Available methods are as follows.
 - [groupBy](#groupBy)
 - [groupByDesc](#groupByDesc)
 - [take](#take)
+- [skip](#skip)
 - [delete](#delete)
 - [deleteBy](#deleteBy)
 - [create](#create)
@@ -218,8 +219,8 @@ Available methods are as follows.
   ```dart
   var userEloquent = UserEloquent();
 
-  // get first user where name is like john
-  userEloquent.where('name','%j%',operator:Operator.like).orderByDesc ('name').take(1).get();
+  // get first user where name is like j
+  userEloquent.where('name','%j%',operator:Operator.like).orderByDesc('name').take(1).get();
   ```
 
 - ### skip
@@ -229,7 +230,7 @@ Available methods are as follows.
   ```dart
   var userEloquent = UserEloquent();
 
-  // get first user where name is like john
+  // skip 1 row and get next 10 users where name is like j
   userEloquent.where('name','%j%',operator:Operator.like).orderByDesc('name').skip(1).take(10).get();
   ```
 
