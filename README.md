@@ -17,7 +17,9 @@ WazEloquent is designed to deal with database without writing custom querys on y
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- You don't need to create your own database class. Just interact with table by using `DB`'s methods such as `onCreate`,`onOpen`,`onConfigure`,`onUpgrade`,`onDowngrade`.
+- Eazy to deal with table without writing query on your own.
+- Laravel Eloquent alike methods.
 
 ## Getting started
 
@@ -121,7 +123,9 @@ Available methods are as follows.
 
 - [where](#where)
 - [orderBy](#orderby)
+- [orderByDesc](#orderbyDesc)
 - [groupBy](#groupBy)
+- [groupByDesc](#groupByDesc)
 - [limit](#limit)
 - [delete](#delete)
 - [deleteBy](#deleteBy)
@@ -134,57 +138,221 @@ Available methods are as follows.
 - [select](#select)
 - [all](#all)
 - [get](#get)
+- [getDatabase](#getDatabase)
 
 <br>
 
 - ### where
 
-```dart
-var userEloquent = UserEloqunet();
+  ```dart
+  var userEloquent = UserEloquent();
 
-//get users where name is john
-userEloquent.where('name','john').get();
+  //get users where name is john
+  userEloquent.where('name','john').get();
 
-//get users where name is john and createdAt greater than 2022-05-03
-userEloquent.where('name','john').where('createdAt','2022-05-03',operator:Operator.greaterThan).get();
+  //get users where name is john and createdAt greater than   2022-05-03
+  userEloquent.where('name','john').where('createdAt','2022-05-03', operator:Operator.greaterThan).get();
 
-//get users where name is not john
-userEloquent.where('name','john',operator:Operator.notEqual).get();
+  //get users where name is not john
+  userEloquent.where('name','john',operator:Operator.notEqual).get();
 
-//get users where name has 'j'
-userEloquent.where('name','%j%',operator:Operator.like).get();
-```
+  //get users where name has 'j'
+  userEloquent.where('name','%j%',operator:Operator.like).get();
+  ```
 
 - ### orderBy
 
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // sort users by 'name' column in descending order
+  userEloquent.orderBy('name',sort:Sort.descending).get();
+  ```
+
+- ### orderByDesc
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // sort users by 'name' column in descending order
+  userEloquent.orderByDesc('name').get();
+  ```
+
 - ### groupBy
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // group users by 'name' column
+  userEloquent.groupBy('name').get();
+  ```
+
+- ### groupByDesc
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // group users by 'name' column
+  userEloquent.groupByDesc('name').get();
+  ```
 
 - ### limit
 
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // get first user where name is like john
+  userEloquent.where('name','%j%',operator:Operator.like).orderByDesc ('name').limit(1).get();
+  ```
+
 - ### delete
+
+  Delete rows from table
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // delete all rows from users
+  userEloquent.delete();
+
+  // delete rows where name has 'j' from users
+  userEloquent.where('name','%j%',operator:Operator.like).delete();
+
+  ```
 
 - ### deleteBy
 
+  Delete a row by primary key.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // delete row where primary key is 1
+  userEloquent.deleteBy(1);
+  ```
+
 - ### create
+
+  Create a new row.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  userEloquent.create({'name':'John','password':'pass'});
+
+  ```
 
 - ### createIfNotExists
 
-- ### update
+  Create a new row only if the value is not existed.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // create user which name is john and password is pass only if name 'john' is not existed.
+  userEloquent.createIfNotExists(check:{'name':'john'},create:{'password':'pass'});
+
+  ```
 
 - ### updateOrCreate
 
+  Update data if exists and if not, create new row.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // if row where name is john exists, update 'password' column. If not, create row where name is john and password is 'pass'.
+  userEloquent.updateOrCreate(check:{'name':'john'},inserts:{'password':'pass'});
+  ```
+
+- ### update
+
+  Update rows.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // update name of all rows to 'john'.
+  userEloquent.update({'name':'john'});
+
+  // update name of rows where id = 1 to 1.
+  userEloquent.where('id',1).update({'name':'john'});
+
+  ```
+
 - ### find
+
+  Find row by primary key.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // get user where primary key (id) is 1.
+  userEloquent.find(1);
+  ```
 
 - ### search
 
+  Search rows.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // get rows where any column has word 'j'.
+  userEloquent.search('j');
+
+  // get rows where country has 'UK' and any other rows has 'j'.
+  userEloquent.where('country','UK').search('j');
+
+  //specify searchable columns
+  userEloquent.search('j',searchableColumns:['name']);
+  ```
+
 - ### select
+
+  Select columns to be returned in results.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // return rows which have only 'name' column in results;
+  userEloquent.select(['name']);
+  ```
 
 - ### all
 
+  Return all rows from table.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  //similar to userEloquent.get() but no matter what options you specify, they will be ignored and all rows will be returned.
+  userEloquent.all();
+
+  //orderBy, limit will be ignored
+  userEloquent.orderBy('name').limit(1).all();
+  ```
+
 - ### get
+
+  Final execution of query is performed by issuing this method.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  userEloquent.get();
+  ```
+
+- ### getDatabase
+  A **static** method to get database instance.
+  ```dart
+  Database db = await UserEloquent.getDatabase;
+  ```
 
 ## Additional information
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+> Check example [here](https://github.com/w99910/wazeloquent/tree/master/example)
+
+&nbsp;&nbsp;&nbsp;This package is develped bc of my future flutter projects and it has only small features for now. I am planning to implement `relationship` features in future.
+<br>
+&nbsp;&nbsp;&nbsp;I would be really glad if this package helps you. Cheers.

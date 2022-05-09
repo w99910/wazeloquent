@@ -108,6 +108,16 @@ abstract class Eloquent {
   String _getGroupBy(String q) {
     if (_groupBy != null) {
       q += ' GROUP BY `$_groupBy`';
+      if (_sort != null) {
+        switch (_sort!) {
+          case Sort.ascending:
+            q += ' ASC';
+            break;
+          case Sort.descending:
+            q += ' DESC';
+            break;
+        }
+      }
     }
     return q;
   }
@@ -163,8 +173,21 @@ abstract class Eloquent {
     return this;
   }
 
-  Eloquent groupBy(String? columnName) {
+  Eloquent orderByDesc(String? columnName) {
+    _orderBy = columnName;
+    _sort = Sort.descending;
+    return this;
+  }
+
+  Eloquent groupBy(String? columnName, {Sort? sort}) {
     _groupBy = columnName;
+    _sort = sort;
+    return this;
+  }
+
+  Eloquent groupByDesc(String? columnName) {
+    _groupBy = columnName;
+    _sort = Sort.descending;
     return this;
   }
 
@@ -238,6 +261,10 @@ abstract class Eloquent {
       {List<String>? searchableColumns}) async {
     String _key = '%$keyword%';
     String q = 'Select';
+    List<String>? _usedColumns;
+    if (_wheres.isNotEmpty) {
+      _usedColumns = _wheres.map((e) => e.columnName).toList();
+    }
     if (searchableColumns != null && searchableColumns.isNotEmpty) {
       for (var column in searchableColumns) {
         _wheres.add(_Where(
@@ -248,6 +275,9 @@ abstract class Eloquent {
       }
     } else {
       for (var column in columns) {
+        if (_usedColumns != null && _usedColumns.contains(column)) {
+          continue;
+        }
         _wheres.add(_Where(
             columnName: column,
             value: _key,
@@ -260,11 +290,11 @@ abstract class Eloquent {
     return await _db.rawQuery(q);
   }
 
-  Future<int> deleteBy(value, {String? column}) async {
+  Future<int> deleteBy(value) async {
     Database _db = await getDatabase;
     return await _db.delete(
       tableName,
-      where: (column ?? getPrimaryColumn) + ' = ?',
+      where: getPrimaryColumn + ' = ?',
       whereArgs: [value],
     );
   }
