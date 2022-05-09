@@ -82,7 +82,7 @@ WazEloquent is designed to deal with database without writing custom querys on y
     static Future<Function(Database)> onOpen = Future(() {
         return (Database db) async {
         await DB.createTable(db, tableName: 'users',columns: {
-          'id': [ColumnType.idType, ColumnType.primaryKey],
+          'id': [ColumnType.idType],
           'name': [ColumnType.stringType, ColumnType.notNull],
           'password': [ColumnType.stringType, ColumnType.notNull],
           'createdAt': [ColumnType.stringType, ColumnType.notNull],
@@ -94,7 +94,7 @@ WazEloquent is designed to deal with database without writing custom querys on y
     static Future<Function(Database, int)> onCreate = Future(() {
         return (Database db, int version) async {
         await DB.createTable(db, tableName: 'users',columns: {
-          'id': [ColumnType.idType, ColumnType.primaryKey],
+          'id': [ColumnType.idType],
           'name': [ColumnType.stringType, ColumnType.notNull],
           'password': [ColumnType.stringType, ColumnType.notNull],
           'createdAt': [ColumnType.stringType, ColumnType.notNull],
