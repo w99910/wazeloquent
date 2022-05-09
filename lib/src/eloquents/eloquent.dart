@@ -140,81 +140,33 @@ abstract class Eloquent {
     return q;
   }
 
-  Eloquent select(List<String> selectedColumns) {
-    _selectedColumns = selectedColumns;
-    return this;
-  }
-
-  Future<List<Map<String, Object?>>?> get() async {
-    String q = 'Select';
-    q += _generateQuery(_getSelectedColumns() ?? '*');
-
-    _reset();
-
+  Future<List<Map<String, Object?>>> _where(Map<String, Object?> object) async {
     Database _db = await getDatabase;
-    return await _db.rawQuery(q);
+    var where = '';
+    var whereArgs = [];
+    object.forEach((key, value) {
+      where = where == '' ? key + ' = ?' : where + ' and ' + key + ' = ?';
+      whereArgs.add(value);
+    });
+    return await _db.query(tableName,
+        columns: columns, where: where, whereArgs: whereArgs);
   }
 
-  Eloquent distinct(List<String>? columnNames) {
-    _selectedColumns = columnNames;
-    _distinct = true;
-    return this;
-  }
-
-  Eloquent skip(int? offset) {
-    _offset = offset;
-    return this;
-  }
-
-  Eloquent take(int? count) {
-    _limit = count;
-    return this;
-  }
-
-  Eloquent orderBy(String? columnName, {Sort? sort}) {
-    _orderBy = columnName;
-    _sort = sort;
-    return this;
-  }
-
-  Eloquent orderByDesc(String? columnName) {
-    _orderBy = columnName;
-    _sort = Sort.descending;
-    return this;
-  }
-
-  Eloquent groupBy(String? columnName, {Sort? sort}) {
-    _groupBy = columnName;
-    _sort = sort;
-    return this;
-  }
-
-  Eloquent groupByDesc(String? columnName) {
-    _groupBy = columnName;
-    _sort = Sort.descending;
-    return this;
-  }
-
-  /// returns the number of changes made.
-  Future<int> delete() async {
-    String query = 'Delete';
-    _selectedColumns = [];
-    _distinct = false;
-    _orderBy = null;
-    _groupBy = null;
-    query += _generateQuery('');
-
-    _reset();
-
-    Database _db = await getDatabase;
-    return await _db.rawDelete(query);
-  }
-
-  Future<List<Map<String, Object?>>?> runQuery(String query) async {
-    Database _db = await getDatabase;
-    return await _db.rawQuery(query);
-  }
-
+  /// Specify 'where' conditions in query.
+  /// ```
+  /// var userEloquent = UserEloquent();
+  /// //get users where name is john
+  /// userEloquent.where('name','john').get();
+  ///
+  /////get users where name is john and createdAt greater than   2022-05-03
+  ///userEloquent.where('name','john').where('createdAt','2022-05-03', operator:Operator.greaterThan).get();
+  ///
+  /////get users where name is not john
+  ///userEloquent.where('name','john',operator:Operator.notEqual).get();
+  ///
+  /////get users where name has 'j'
+  ///userEloquent.where('name','%j%',operator:Operator.like).get();
+  ///```
   Eloquent where(String columnName, String value,
       {Operator operator = Operator.equal}) {
     String? _operator;
@@ -247,6 +199,151 @@ abstract class Eloquent {
     return this;
   }
 
+  /// Sort rows in either descending or ascending order.
+  /// ```
+  ///var userEloquent = UserEloquent();
+  ///
+  /// // sort users by 'name' column
+  ///userEloquent.orderBy('name').get();
+  ///
+  ///// sort users by 'name' column in descending order
+  ///userEloquent.orderBy('name',sort:Sort.descending).get();
+  ///```
+  Eloquent orderBy(String? columnName, {Sort? sort}) {
+    _orderBy = columnName;
+    _sort = sort;
+    return this;
+  }
+
+  /// Sort rows in descending order.
+  /// ```
+  /// var userEloquent = UserEloquent();
+  /// // sort users by 'name' column in descending order
+  /// userEloquent.orderByDesc('name').get();
+  ///```
+  Eloquent orderByDesc(String? columnName) {
+    _orderBy = columnName;
+    _sort = Sort.descending;
+    return this;
+  }
+
+  /// Group rows by column.
+  ///   ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  /// // group users by 'name' column
+  /// userEloquent.groupBy('name').get();
+  /// ```
+  Eloquent groupBy(String? columnName, {Sort? sort}) {
+    _groupBy = columnName;
+    _sort = sort;
+    return this;
+  }
+
+  /// Group rows by column in descending order.
+
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  /// // group users by 'name' column
+  /// userEloquent.groupByDesc('name').get();
+  /// ```
+  Eloquent groupByDesc(String? columnName) {
+    _groupBy = columnName;
+    _sort = Sort.descending;
+    return this;
+  }
+
+  /// Limit the number of rows in result
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  /// // get first user where name is like j
+  /// userEloquent.where('name','%j%',operator:Operator.like).orderByDesc('name').take(1).get();
+  /// ```
+  Eloquent take(int? count) {
+    _limit = count;
+    return this;
+  }
+
+  /// Skip a given number of results.
+
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  /// // skip 1 row and get next 10 users where name is like j
+  /// userEloquent.where('name','%j%',operator:Operator.like).orderByDesc('name').skip(1).take(10).get();
+  /// ```
+  Eloquent skip(int? offset) {
+    _offset = offset;
+    return this;
+  }
+
+  /// Get unique column values.
+  /// ```
+  ///  var userEloquent = UserEloquent();
+  ///// get unique rows related to column 'name'.
+  ///userEloquent.distinct(['name']).get();
+  ///```
+  Eloquent distinct(List<String>? columnNames) {
+    _selectedColumns = columnNames;
+    _distinct = true;
+    return this;
+  }
+
+  /// Return all rows from table.
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  /// //similar to userEloquent.get() but no matter what options you specify, they will be ignored and all rows will be returned.
+  /// userEloquent.all();
+  ///
+  /// //orderBy, limit will be ignored
+  /// userEloquent.orderBy('name').limit(1).all();
+  /// ```
+  Future<List<Map<String, Object?>>> all() async {
+    Database _db = await getDatabase;
+    String query = 'SELECT';
+    _reset();
+    query += _generateQuery('*');
+
+    return await _db.rawQuery(query);
+  }
+
+  /// Final execution of query is performed by issuing this method.
+  /// ```
+  /// var userEloquent = UserEloquent();
+  /// userEloquent.get();
+  /// ```
+  Future<List<Map<String, Object?>>?> get() async {
+    String q = 'Select';
+    q += _generateQuery(_getSelectedColumns() ?? '*');
+
+    _reset();
+
+    Database _db = await getDatabase;
+    return await _db.rawQuery(q);
+  }
+
+  /// Specify columns to be only included in results.
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  /// //return rows which have only 'name' column in results;
+  ///userEloquent.select(['name']);
+  ///```
+  Eloquent select(List<String> selectedColumns) {
+    _selectedColumns = selectedColumns;
+    return this;
+  }
+
+  /// Find row by primary key.
+  ///
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  /// // get user where primary key (id) is 1.
+  /// userEloquent.find(1);
+  /// ```
   Future<Map<String, Object?>?> find(primaryKeyValue) async {
     Database _db = await getDatabase;
     var results = await _db.query(
@@ -261,6 +358,20 @@ abstract class Eloquent {
     return null;
   }
 
+  /// Search rows.
+  ///
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  /// // get rows where any column has word 'j'.
+  /// userEloquent.search('j');
+  ///
+  /// // get rows where country has 'UK' and any other rows has 'j'.
+  /// userEloquent.where('country','UK').search('j');
+  ///
+  /// //specify searchable columns
+  /// userEloquent.search('j',searchableColumns:['name']);
+  /// ```
   Future<List<Map<String, Object?>>> search(String keyword,
       {List<String>? searchableColumns}) async {
     String _key = '%$keyword%';
@@ -294,41 +405,27 @@ abstract class Eloquent {
     return await _db.rawQuery(q);
   }
 
-  Future<int> deleteBy(value) async {
-    Database _db = await getDatabase;
-    return await _db.delete(
-      tableName,
-      where: getPrimaryColumn + ' = ?',
-      whereArgs: [value],
-    );
-  }
-
-  Future<List<Map<String, Object?>>> all() async {
-    Database _db = await getDatabase;
-    String query = 'SELECT';
-    _reset();
-    query += _generateQuery('*');
-
-    return await _db.rawQuery(query);
-  }
-
+  /// Create a new row.
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  /// userEloquent.create({'name':'John','password':'pass'});
+  ///
+  /// ```
   Future<int> create({required Map<String, Object?> values}) async {
     final db = await getDatabase;
     return await db.insert(tableName, values);
   }
 
-  Future<List<Map<String, Object?>>> _where(Map<String, Object?> object) async {
-    Database _db = await getDatabase;
-    var where = '';
-    var whereArgs = [];
-    object.forEach((key, value) {
-      where = where == '' ? key + ' = ?' : where + ' and ' + key + ' = ?';
-      whereArgs.add(value);
-    });
-    return await _db.query(tableName,
-        columns: columns, where: where, whereArgs: whereArgs);
-  }
-
+  /// Create a new row only if the value is not existed.
+  ///
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  // create user which name is john and password is pass only if name 'john' is not existed.
+  /// userEloquent.createIfNotExists(check:{'name':'john'},create:{'password':'pass'});
+  ///
+  /// ```
   Future<int?> createIfNotExists(
       {required Map<String, Object?> check,
       required Map<String, Object?> create}) async {
@@ -341,6 +438,14 @@ abstract class Eloquent {
     return await db.insert(tableName, create);
   }
 
+  /// Update data if exists and if not, create new row.
+  ///
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  /// // if row where name is john exists, update 'password' column. If not, create row where name is john and password is 'pass'.
+  /// userEloquent.updateOrCreate(check:{'name':'john'},inserts:{'password':'pass'});
+  ///```
   Future<int> updateOrCreate(
       {required Map<String, Object?> check,
       required Map<String, Object?> inserts}) async {
@@ -363,7 +468,18 @@ abstract class Eloquent {
     return await db.insert(tableName, {...check, ...inserts});
   }
 
-  ///returns the number of changes made.
+  /// Update rows and return number of changes.
+
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  /// // update name of all rows to 'john'.
+  /// userEloquent.update({'name':'john'});
+  ///
+  /// // update name of rows where id = 1 to 1.
+  /// userEloquent.where('id',1).update({'name':'john'});
+  ///
+  /// ```
   Future<int> update(Map<String, Object?> values) async {
     String q = 'Update $tableName';
     for (var val in values.entries) {
@@ -379,6 +495,49 @@ abstract class Eloquent {
     q = _getLimitOffset(q);
     final db = await getDatabase;
     return await db.rawUpdate(q);
+  }
+
+  ///   Delete rows from table and return number of changes.
+  ///
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  /// // delete all rows from users
+  /// userEloquent.delete();
+  ///
+  /// // delete rows where name has 'j' from users
+  /// userEloquent.where('name','%j%',operator:Operator.like).delete();
+  ///
+  /// ```
+  Future<int> delete() async {
+    String query = 'Delete';
+    _selectedColumns = [];
+    _distinct = false;
+    _orderBy = null;
+    _groupBy = null;
+    query += _generateQuery('');
+
+    _reset();
+
+    Database _db = await getDatabase;
+    return await _db.rawDelete(query);
+  }
+
+  ///  Delete a row by primary key.
+  ///
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  /// // delete row where primary key is 1
+  /// userEloquent.deleteBy(1);
+  /// ```
+  Future<int> deleteBy(value) async {
+    Database _db = await getDatabase;
+    return await _db.delete(
+      tableName,
+      where: getPrimaryColumn + ' = ?',
+      whereArgs: [value],
+    );
   }
 }
 

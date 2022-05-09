@@ -72,30 +72,87 @@ class DB {
 
   static Database? _database;
 
+  /// Executes when creating database. This method should be called before using eloquent.
+  /// ```
+  /// DB.instance.onCreate([
+  ///       Future(() {
+  ///         return (Database db, int) async {};
+  ///       }),
+  ///   ]);
+  ///
+  /// //Or
+  /// DB.instance.onCreate([UserEloquent.onCreate]);
+  /// ```
   void onCreate(List<Future<Function(Database, int)>> fn) {
     _onCreate.addAll(fn);
   }
 
+  /// Executes when opening database. This method should be called before using eloquent.
+  /// ```
+  /// DB.instance.onOpen([
+  ///       Future(() {
+  ///         return (Database db) async {};
+  ///       }),
+  ///   ]);
+  ///
+  /// //Or
+  /// DB.instance.onOpen([UserEloquent.onOpen]);
+  /// ```
   void onOpen(List<Future<Function(Database)>> fn) {
     _onOpen.addAll(fn);
   }
 
+  /// Executes when creating database. This method should be called before using eloquent.
+  /// ```
+  /// DB.instance.onConfigure([
+  ///       Future(() {
+  ///         return (Database db) async {};
+  ///       }),
+  ///   ]);
+  ///
+  /// //Or
+  /// DB.instance.onConfigure([UserEloquent.onConfigure]);
+  /// ```
   void onConfigure(List<Future<Function(Database)>> fn) {
     _onConfigure.addAll(fn);
   }
 
+  /// Executes when creating database. This method should be called before using eloquent.
+  /// ```
+  /// DB.instance.onUpgrade([
+  ///       Future(() {
+  ///         return (Database db, int oldversion,int newversion) async {};
+  ///       }),
+  ///   ]);
+  ///
+  /// //Or
+  /// DB.instance.onUpgrade([UserEloquent.onUpgrade]);
+  /// ```
   void onUpgrade(List<Future<Function(Database, int, int)>> fn) {
     _onUpgrade.addAll(fn);
   }
 
+  /// Executes when creating database. This method should be called before using eloquent.
+  /// ```
+  /// DB.instance.onDowngrade([
+  ///       Future(() {
+  ///         return (Database db, int oldversion,int newversion) async {};
+  ///       }),
+  ///   ]);
+  ///
+  /// //Or
+  /// DB.instance.onDowngrade([UserEloquent.onDowngrade]);
+  /// ```
   void onDowngrade(List<Future<Function(Database, int, int)>> fn) {
     _onDowngrade.addAll(fn);
   }
 
+  /// Set file name. This method should be called before using eloquent.
   void setFileName(String name) {
     fileName = name;
   }
 
+  /// Set db version. Set file name. This method should be called before using eloquent.
   void setDbVersion(int ver) {
     version = ver;
   }

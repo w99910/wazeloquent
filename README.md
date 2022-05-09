@@ -128,24 +128,25 @@ Available methods are as follows.
 - [groupByDesc](#groupByDesc)
 - [take](#take)
 - [skip](#skip)
-- [delete](#delete)
-- [deleteBy](#deleteBy)
+- [distinct](#distinct)
+- [all](#all)
+- [get](#get)
+- [select](#select)
+- [find](#find)
+- [search](#search)
 - [create](#create)
 - [createIfNotExists](#createIfNotExists)
 - [updateOrCreate](#updateOrCreate)
 - [update](#update)
-- [find](#find)
-- [search](#search)
-- [select](#select)
-- [all](#all)
-- [get](#get)
+- [delete](#delete)
+- [deleteBy](#deleteBy)
 - [getDatabase](#getDatabase)
 
 <br>
 
 - ### where
 
-  Specify conditions.
+  Specify 'where' conditions in query.
 
   > Always include `get()` method at the end of query. Otherwise query will not be executed.
 
@@ -214,7 +215,7 @@ Available methods are as follows.
 
 - ### take
 
-  Limit the number of rows.
+  Limit the number of rows in result.
 
   ```dart
   var userEloquent = UserEloquent();
@@ -234,30 +235,79 @@ Available methods are as follows.
   userEloquent.where('name','%j%',operator:Operator.like).orderByDesc('name').skip(1).take(10).get();
   ```
 
-- ### delete
+- ### distinct
 
-  Delete rows from table
+  Get unique column values.
 
   ```dart
   var userEloquent = UserEloquent();
 
-  // delete all rows from users
-  userEloquent.delete();
-
-  // delete rows where name has 'j' from users
-  userEloquent.where('name','%j%',operator:Operator.like).delete();
+  // get unique rows related to column 'name'.
+  userEloquent.distinct(['name']).get();
 
   ```
 
-- ### deleteBy
+- ### all
 
-  Delete a row by primary key.
+  Return all rows from table.
 
   ```dart
   var userEloquent = UserEloquent();
 
-  // delete row where primary key is 1
-  userEloquent.deleteBy(1);
+  //similar to userEloquent.get() but no matter what options you specify, they will be ignored and all rows will be returned.
+  userEloquent.all();
+
+  //orderBy, limit will be ignored
+  userEloquent.orderBy('name').limit(1).all();
+  ```
+
+- ### get
+
+  Final execution of query is performed by issuing this method.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  userEloquent.get();
+  ```
+
+- ### select
+
+  Select columns to be returned in results.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // return rows which have only 'name' column in results;
+  userEloquent.select(['name']);
+  ```
+
+- ### find
+
+  Find row by primary key.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // get user where primary key (id) is 1.
+  userEloquent.find(1);
+  ```
+
+- ### search
+
+  Search rows.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // get rows where any column has word 'j'.
+  userEloquent.search('j');
+
+  // get rows where country has 'UK' and any other rows has 'j'.
+  userEloquent.where('country','UK').search('j');
+
+  //specify searchable columns
+  userEloquent.search('j',searchableColumns:['name']);
   ```
 
 - ### create
@@ -309,67 +359,30 @@ Available methods are as follows.
 
   ```
 
-- ### find
+- ### delete
 
-  Find row by primary key.
+  Delete rows from table
 
   ```dart
   var userEloquent = UserEloquent();
 
-  // get user where primary key (id) is 1.
-  userEloquent.find(1);
+  // delete all rows from users
+  userEloquent.delete();
+
+  // delete rows where name has 'j' from users
+  userEloquent.where('name','%j%',operator:Operator.like).delete();
+
   ```
 
-- ### search
+- ### deleteBy
 
-  Search rows.
-
-  ```dart
-  var userEloquent = UserEloquent();
-
-  // get rows where any column has word 'j'.
-  userEloquent.search('j');
-
-  // get rows where country has 'UK' and any other rows has 'j'.
-  userEloquent.where('country','UK').search('j');
-
-  //specify searchable columns
-  userEloquent.search('j',searchableColumns:['name']);
-  ```
-
-- ### select
-
-  Select columns to be returned in results.
+  Delete a row by primary key.
 
   ```dart
   var userEloquent = UserEloquent();
 
-  // return rows which have only 'name' column in results;
-  userEloquent.select(['name']);
-  ```
-
-- ### all
-
-  Return all rows from table.
-
-  ```dart
-  var userEloquent = UserEloquent();
-
-  //similar to userEloquent.get() but no matter what options you specify, they will be ignored and all rows will be returned.
-  userEloquent.all();
-
-  //orderBy, limit will be ignored
-  userEloquent.orderBy('name').limit(1).all();
-  ```
-
-- ### get
-
-  Final execution of query is performed by issuing this method.
-
-  ```dart
-  var userEloquent = UserEloquent();
-
-  userEloquent.get();
+  // delete row where primary key is 1
+  userEloquent.deleteBy(1);
   ```
 
 - ### getDatabase
