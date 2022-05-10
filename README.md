@@ -126,6 +126,7 @@ Available methods are as follows.
 - [orderByDesc](#orderbyDesc)
 - [groupBy](#groupBy)
 - [groupByDesc](#groupByDesc)
+- [latest](#latest)
 - [take](#take)
 - [skip](#skip)
 - [distinct](#distinct)
@@ -211,6 +212,20 @@ Available methods are as follows.
 
   // group users by 'name' column
   userEloquent.groupByDesc('name').get();
+  ```
+
+- ### latest
+
+  Get latest row related to primary key. You can specify the column name.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // Get latest user by 'id' which is primary key.
+  userEloquent.latest().get();
+
+  // Get latest user by 'name';
+  userEloquent.latest(columnName:'name').get();
   ```
 
 - ### take

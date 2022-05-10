@@ -254,6 +254,25 @@ abstract class Eloquent {
     return this;
   }
 
+  ///  Get latest row related to primary key. You can specify the column name.
+  ///
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  ///  // Get latest user by 'id' which is primary key.
+  /// userEloquent.latest().get();
+  ///
+  /// // Get latest user by 'name';
+  /// userEloquent.latest(columnName:'name').get();
+  /// ```
+  Eloquent latest({String? columName}) {
+    _orderBy = columName ?? getPrimaryColumn;
+    _offset = 0;
+    _sort = Sort.descending;
+    _limit = 1;
+    return this;
+  }
+
   /// Limit the number of rows in result
   /// ```dart
   /// var userEloquent = UserEloquent();
@@ -352,6 +371,7 @@ abstract class Eloquent {
       where: getPrimaryColumn + ' = ?',
       whereArgs: [primaryKeyValue],
     );
+    _reset();
     if (results.isNotEmpty) {
       return results[0];
     }
@@ -379,6 +399,7 @@ abstract class Eloquent {
     List<String>? _usedColumns;
     if (_wheres.isNotEmpty) {
       _usedColumns = _wheres.map((e) => e.columnName).toList();
+      _wheres = [];
     }
     if (searchableColumns != null && searchableColumns.isNotEmpty) {
       for (var column in searchableColumns) {
@@ -401,6 +422,7 @@ abstract class Eloquent {
       }
     }
     q += _generateQuery(_getSelectedColumns() ?? '*');
+    _reset();
     Database _db = await getDatabase;
     return await _db.rawQuery(q);
   }
@@ -413,6 +435,7 @@ abstract class Eloquent {
   ///
   /// ```
   Future<int> create({required Map<String, Object?> values}) async {
+    _reset();
     final db = await getDatabase;
     return await db.insert(tableName, values);
   }
@@ -432,9 +455,10 @@ abstract class Eloquent {
     final db = await getDatabase;
     List result = await _where(check);
     if (result.isNotEmpty) {
-      return int.tryParse(result.first[getPrimaryColumn]);
+      return null;
     }
     create.addAll(check);
+    _reset();
     return await db.insert(tableName, create);
   }
 
@@ -465,6 +489,7 @@ abstract class Eloquent {
           where: where,
           whereArgs: whereArgs);
     }
+    _reset();
     return await db.insert(tableName, {...check, ...inserts});
   }
 
@@ -493,6 +518,7 @@ abstract class Eloquent {
     q = _getWhereQuery(q);
     q = _getOrderBy(q);
     q = _getLimitOffset(q);
+    _reset();
     final db = await getDatabase;
     return await db.rawUpdate(q);
   }
