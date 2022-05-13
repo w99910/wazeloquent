@@ -14,7 +14,13 @@ class OneToOne extends StatefulWidget {
   State<OneToOne> createState() => _OneToOneState();
 }
 
-const carNames = ['Lamborghini Diablo', 'Ford Raptor', 'Ferrari Testarossa'];
+const carNames = [
+  'Lamborghini Diablo',
+  'Ford Raptor',
+  'Ferrari Testarossa',
+  'Porsche 911 Carrera',
+  'Jeep Gladiator'
+];
 
 class _OneToOneState extends State<OneToOne> {
   final CarEloquent carEloquent = CarEloquent();
@@ -67,7 +73,6 @@ class _OneToOneState extends State<OneToOne> {
     for (var car in data!) {
       cars.add(await Car.withUser(car));
     }
-    inspect(cars);
 
     setState(() {
       cars = cars;
@@ -75,6 +80,10 @@ class _OneToOneState extends State<OneToOne> {
   }
 
   create() async {
+    if (users.isEmpty) {
+      showSnack('Empty User');
+      return;
+    }
     var data = await carEloquent.create(values: {
       'name': carNames[Random().nextInt(carNames.length)],
       'user_id': users[Random().nextInt(users.length)].id,

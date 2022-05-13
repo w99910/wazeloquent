@@ -11,7 +11,16 @@ class Basic extends StatefulWidget {
   State<Basic> createState() => _BasicState();
 }
 
-final List<String> names = ['John', 'Doe', 'Sam', 'Dean', 'Jenny'];
+final List<String> names = [
+  'John',
+  'Doe',
+  'Sam',
+  'Dean',
+  'Jenny',
+  'Emma',
+  'Ava',
+  'Potter'
+];
 
 class _BasicState extends State<Basic> {
   final UserEloquent userEloquent = UserEloquent();
@@ -31,7 +40,7 @@ class _BasicState extends State<Basic> {
 
   createUser() async {
     var data = await userEloquent.create(values: {
-      'name': names[Random().nextInt(4)],
+      'name': names[Random().nextInt(names.length)],
       'password': 'pass',
       'createdAt': DateTime.now().toIso8601String(),
       'updatedAt': DateTime.now().toIso8601String()
@@ -58,7 +67,7 @@ class _BasicState extends State<Basic> {
     if (users.isNotEmpty) {
       User user = users.first;
       var response =
-          await userEloquent.where('id', user.id.toString()).delete();
+          await userEloquent.where('id', user.id.toString()).skip(1).delete();
       showSnack('Total deleted - ' + response.toString());
       loadUsers();
     }
@@ -66,9 +75,8 @@ class _BasicState extends State<Basic> {
 
   updateUser() async {
     if (users.isNotEmpty) {
-      // User user = users.first;
-      var response = await userEloquent
-          // .where('id', user.id.toString())
+      User user = users.first;
+      var response = await userEloquent.where('id', user.id.toString())
           // .take(1) //=> update the first result only.
           .update({'name': names[Random().nextInt(names.length)]});
       showSnack('Total updated - ' + response.toString());

@@ -64,14 +64,10 @@ abstract class Eloquent {
     if (_wheres.isNotEmpty) {
       q += prefix ?? ' WHERE';
       table = table ?? tableName;
-      var _queryableWheres =
-          _wheres.where((element) => columns.contains(element.columnName));
-      var whereAnd = _queryableWheres
-          .where((element) => element.conjunction == 'and')
-          .toList();
-      var whereOr = _queryableWheres
-          .where((element) => element.conjunction == 'or')
-          .toList();
+      var whereAnd =
+          _wheres.where((element) => element.conjunction == 'and').toList();
+      var whereOr =
+          _wheres.where((element) => element.conjunction == 'or').toList();
       for (var where in whereAnd.asMap().entries) {
         q +=
             ' $table.${where.value.columnName} ${where.value.operator} "${where.value.value}"';
@@ -130,9 +126,8 @@ abstract class Eloquent {
   }
 
   String _getLimitOffset(String q) {
-    if (_limit != null) {
-      q += ' LIMIT $_limit';
-    }
+    _limit = _limit ?? -1;
+    q += ' LIMIT $_limit';
     if (_offset != null) {
       q += ' OFFSET $_offset';
     }
@@ -178,6 +173,9 @@ abstract class Eloquent {
   ///```
   Eloquent where(String columnName, String value,
       {Operator operator = Operator.equal}) {
+    if (!columns.contains(columnName)) {
+      throw Exception('Column "$columnName" not found');
+    }
     String? _operator;
     switch (operator) {
       case Operator.equal:

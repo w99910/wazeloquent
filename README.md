@@ -8,7 +8,7 @@ WazEloquent is designed to deal with database without writing custom querys on y
 - Eazy to deal with table without writing query on your own.
 - Laravel Eloquent alike methods.
 
-## Getting started
+`## Getting started
 
 - ### Extend eloquent and configure required methods
 
