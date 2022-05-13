@@ -1,16 +1,3 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
-
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
-
 # WazEloquent
 
 WazEloquent is designed to deal with database without writing custom querys on your own. This package is built on top of [Sqflite](https://github.com/tekartik/sqflite/tree/master/sqflite) package and inspired by [Laravel](https://laravel.com) eloquent.
@@ -53,8 +40,9 @@ WazEloquent is designed to deal with database without writing custom querys on y
 
   void main(){
     var db = DB.instance;
-    db.setDbVersion(1); // set db version
-    db.setFileName('example.db'); // set file name
+    db.setDbVersion(1); // optinal: set db version, default: 1
+    // db.setFilePath(path); // optional: set db path
+    db.setFileName('example.db'); // optional: set file name, default: sqflite.db
     db.onCreate([
         Future(() {
           return (Database db, int) async {};
@@ -116,6 +104,19 @@ WazEloquent is designed to deal with database without writing custom querys on y
   ```
 
   Then you are ready to use eloquent.
+
+- ### Using existing db
+
+  In order to use existing db, you can specify file path and file name. For example,
+
+  ```dart
+  import 'package:path_provider/path_provider.dart';
+
+  var path = await getApplicationDocumentsDirectory();
+  var dir = path.absolute.path + '/test';
+  db.setFilePath(dir, shouldForceCreatePath: true); // Specify 'shouldForceCreatePath' to true for creating folder if not exist.
+  db.setFileName('example.db');
+  ```
 
 ## Usage
 

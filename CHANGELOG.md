@@ -1,3 +1,9 @@
+## 0.0.1+5
+
+- Added method to specify `filePath` for db.
+- Catch the query to debug in details.
+- Added `hasOne`**(still experimental)** and `belongsTo`**(still experimental)** method.
+
 ## 0.0.1+4
 
 - Fixing bugs where properties are not reset.

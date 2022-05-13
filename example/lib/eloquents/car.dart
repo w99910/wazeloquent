@@ -1,26 +1,30 @@
+import 'package:example/models/car.dart';
 import 'package:wazeloquent/wazeloquent.dart';
 
-class UserEloquent extends Eloquent {
+class CarEloquent extends Eloquent {
   @override
-  List<String> get columns =>
-      ['id', 'name', 'password', 'createdAt', 'updatedAt'];
+  List<String> get columns => ['id', 'name', 'createdAt', 'updatedAt'];
 
   @override
   String get getPrimaryColumn => 'id';
 
   @override
-  String get tableName => 'users';
+  String get tableName => 'cars';
 
-  test() {
-    belongsTo('passwords');
+  user(String id) async {
+    return await where('id', id).belongsTo('users');
   }
 
   static Future<Function(Database)> onOpen = Future(() {
     return (Database db) async {
-      await DB.createTable(db, tableName: 'users', columns: {
+      await DB.createTable(db, tableName: 'cars', columns: {
         'id': [ColumnType.idType],
+        'user_id': DB.foreign(
+            foreignKey: 'user_id',
+            parentKey: 'id',
+            parentTable: 'users',
+            type: ColumnType.integerType),
         'name': [ColumnType.stringType, ColumnType.notNull],
-        'password': [ColumnType.stringType, ColumnType.notNull],
         'createdAt': [ColumnType.stringType, ColumnType.notNull],
         'updatedAt': [ColumnType.stringType, ColumnType.notNull],
       });
@@ -29,10 +33,14 @@ class UserEloquent extends Eloquent {
 
   static Future<Function(Database, int)> onCreate = Future(() {
     return (Database db, int version) async {
-      await DB.createTable(db, tableName: 'users', columns: {
+      await DB.createTable(db, tableName: 'cars', columns: {
         'id': [ColumnType.idType],
+        'user_id': DB.foreign(
+            foreignKey: 'user_id',
+            parentKey: 'id',
+            parentTable: 'users',
+            type: ColumnType.integerType),
         'name': [ColumnType.stringType, ColumnType.notNull],
-        'password': [ColumnType.stringType, ColumnType.notNull],
         'createdAt': [ColumnType.stringType, ColumnType.notNull],
         'updatedAt': [ColumnType.stringType, ColumnType.notNull],
       });

@@ -25,8 +25,10 @@ class ColumnType {
 }
 
 class DB {
-  static String fileName = 'sqflite.db';
-  static int version = 1;
+  static String _fileName = 'sqflite.db';
+  static int _version = 1;
+  static String? _filePath;
+  static bool _shouldForceCreatePath = false;
 
   static String getAction(DBActions action) {
     switch (action) {
@@ -64,11 +66,11 @@ class DB {
   static final DB instance = DB._init();
   DB._init();
 
-  static List<Future<Function(Database, int)>> _onCreate = [];
-  static List<Future<Function(Database)>> _onOpen = [];
-  static List<Future<Function(Database)>> _onConfigure = [];
-  static List<Future<Function(Database, int, int)>> _onUpgrade = [];
-  static List<Future<Function(Database, int, int)>> _onDowngrade = [];
+  final List<Future<Function(Database, int)>> _onCreate = [];
+  final List<Future<Function(Database)>> _onOpen = [];
+  final List<Future<Function(Database)>> _onConfigure = [];
+  final List<Future<Function(Database, int, int)>> _onUpgrade = [];
+  final List<Future<Function(Database, int, int)>> _onDowngrade = [];
 
   static Database? _database;
 
@@ -148,25 +150,27 @@ class DB {
   }
 
   /// Set file name. This method should be called before using eloquent.
+  void setFilePath(String path, {bool shouldForceCreatePath = false}) {
+    _filePath = path;
+    _shouldForceCreatePath = shouldForceCreatePath;
+  }
+
+  /// Set file name. This method should be called before using eloquent.
   void setFileName(String name) {
-    fileName = name;
+    _fileName = name;
   }
 
   /// Set db version. Set file name. This method should be called before using eloquent.
   void setDbVersion(int ver) {
-    version = ver;
+    _version = ver;
   }
 
   Future<Database> get database async => await getDB();
 
   Future<Database> getDB() async {
     if (_database != null) return _database!;
-    _database = await _initDB(fileName: fileName);
+    _database = await _initDB(fileName: _fileName);
     return _database!;
-  }
-
-  Future<void> reinitialiseDB() async {
-    _database = await _initDB(fileName: fileName);
   }
 
   static Future createTable(Database db,
@@ -192,10 +196,22 @@ class DB {
   }
 
   Future<Database> _initDB({required String fileName}) async {
-    final dbPath = Platform.isAndroid
-        ? await getDatabasesPath()
-        : (await getApplicationDocumentsDirectory()).toString();
-    final path = join(dbPath + fileName);
+    String? dbPath;
+    if (_filePath != null) {
+      if (!Directory(_filePath!).existsSync()) {
+        if (!_shouldForceCreatePath) {
+          throw Exception('Folder not found to create db.');
+        }
+        await Directory(_filePath!).create(recursive: true);
+      }
+      dbPath = _filePath;
+    } else {
+      dbPath = Platform.isAndroid
+          ? await getDatabasesPath()
+          : (await getApplicationDocumentsDirectory()).toString();
+    }
+
+    final path = join(dbPath! + fileName);
     if (!await Directory(dirname(path)).exists()) {
       try {
         await Directory(dirname(path)).create(recursive: true);
@@ -203,7 +219,7 @@ class DB {
         // print(e);
       }
     }
-    return await openDatabase(path, version: version,
+    return await openDatabase(path, version: _version,
         onCreate: (Database db, int version) async {
       for (var fn in _onCreate) {
         Function.apply(await fn, [db, version]);

@@ -5,7 +5,7 @@ abstract class Eloquent {
 
   String get tableName;
 
-  static Future<Database> get getDatabase async => DB.instance.getDB();
+  Future<Database> get getDatabase async => DB.instance.getDB();
 
   String get getPrimaryColumn;
 
@@ -40,6 +40,12 @@ abstract class Eloquent {
     return _toString(_selectedColumns);
   }
 
+  Future<List<String>> getColumnNames(String table) async {
+    Database _db = await getDatabase;
+    var data = await _db.rawQuery("PRAGMA table_info(" + table + ")", null);
+    return data.map((e) => e['name'].toString()).toList();
+  }
+
   String? _toString(List<String>? values) {
     String? val;
     if (values != null && values.isNotEmpty) {
@@ -54,9 +60,10 @@ abstract class Eloquent {
     return val;
   }
 
-  String _getWhereQuery(String q) {
+  String _getWhereQuery(String q, {String? prefix, String? table}) {
     if (_wheres.isNotEmpty) {
-      q += ' WHERE';
+      q += prefix ?? ' WHERE';
+      table = table ?? tableName;
       var _queryableWheres =
           _wheres.where((element) => columns.contains(element.columnName));
       var whereAnd = _queryableWheres
@@ -67,7 +74,7 @@ abstract class Eloquent {
           .toList();
       for (var where in whereAnd.asMap().entries) {
         q +=
-            ' ${where.value.columnName} ${where.value.operator} "${where.value.value}"';
+            ' $table.${where.value.columnName} ${where.value.operator} "${where.value.value}"';
         if (where.key != _wheres.length - 1) {
           q += ' ${where.value.conjunction}';
         }
@@ -77,7 +84,7 @@ abstract class Eloquent {
           q += ' (';
         }
         q +=
-            ' ${where.value.columnName} ${where.value.operator} "${where.value.value}"';
+            ' $table.${where.value.columnName} ${where.value.operator} "${where.value.value}"';
         if (where.key != _wheres.length - 1) {
           q += ' ${where.value.conjunction}';
         } else {
@@ -123,7 +130,9 @@ abstract class Eloquent {
   }
 
   String _getLimitOffset(String q) {
-    q += ' LIMIT ${_limit ?? '-1'}';
+    if (_limit != null) {
+      q += ' LIMIT $_limit';
+    }
     if (_offset != null) {
       q += ' OFFSET $_offset';
     }
@@ -321,12 +330,16 @@ abstract class Eloquent {
   /// userEloquent.orderBy('name').limit(1).all();
   /// ```
   Future<List<Map<String, Object?>>> all() async {
-    Database _db = await getDatabase;
     String query = 'SELECT';
-    _reset();
-    query += _generateQuery('*');
+    try {
+      Database _db = await getDatabase;
+      _reset();
+      query += _generateQuery('*');
 
-    return await _db.rawQuery(query);
+      return await _db.rawQuery(query);
+    } catch (e) {
+      throw Exception(e.toString() + ' \n $query');
+    }
   }
 
   /// Final execution of query is performed by issuing this method.
@@ -336,12 +349,16 @@ abstract class Eloquent {
   /// ```
   Future<List<Map<String, Object?>>?> get() async {
     String q = 'Select';
-    q += _generateQuery(_getSelectedColumns() ?? '*');
+    try {
+      q += _generateQuery(_getSelectedColumns() ?? '*');
 
-    _reset();
+      _reset();
 
-    Database _db = await getDatabase;
-    return await _db.rawQuery(q);
+      Database _db = await getDatabase;
+      return await _db.rawQuery(q);
+    } catch (e) {
+      throw Exception(e.toString() + ' \n $q');
+    }
   }
 
   /// Specify columns to be only included in results.
@@ -396,35 +413,39 @@ abstract class Eloquent {
       {List<String>? searchableColumns}) async {
     String _key = '%$keyword%';
     String q = 'Select';
-    List<String>? _usedColumns;
-    if (_wheres.isNotEmpty) {
-      _usedColumns = _wheres.map((e) => e.columnName).toList();
-      _wheres = [];
-    }
-    if (searchableColumns != null && searchableColumns.isNotEmpty) {
-      for (var column in searchableColumns) {
-        _wheres.add(_Where(
-            columnName: column,
-            value: _key,
-            operator: 'LIKE',
-            conjunction: 'or'));
+    try {
+      List<String>? _usedColumns;
+      if (_wheres.isNotEmpty) {
+        _usedColumns = _wheres.map((e) => e.columnName).toList();
+        _wheres = [];
       }
-    } else {
-      for (var column in columns) {
-        if (_usedColumns != null && _usedColumns.contains(column)) {
-          continue;
+      if (searchableColumns != null && searchableColumns.isNotEmpty) {
+        for (var column in searchableColumns) {
+          _wheres.add(_Where(
+              columnName: column,
+              value: _key,
+              operator: 'LIKE',
+              conjunction: 'or'));
         }
-        _wheres.add(_Where(
-            columnName: column,
-            value: _key,
-            operator: 'LIKE',
-            conjunction: 'or'));
+      } else {
+        for (var column in columns) {
+          if (_usedColumns != null && _usedColumns.contains(column)) {
+            continue;
+          }
+          _wheres.add(_Where(
+              columnName: column,
+              value: _key,
+              operator: 'LIKE',
+              conjunction: 'or'));
+        }
       }
+      q += _generateQuery(_getSelectedColumns() ?? '*');
+      _reset();
+      Database _db = await getDatabase;
+      return await _db.rawQuery(q);
+    } catch (e) {
+      throw Exception(e.toString() + ' \n $q');
     }
-    q += _generateQuery(_getSelectedColumns() ?? '*');
-    _reset();
-    Database _db = await getDatabase;
-    return await _db.rawQuery(q);
   }
 
   /// Create a new row.
@@ -507,20 +528,24 @@ abstract class Eloquent {
   /// ```
   Future<int> update(Map<String, Object?> values) async {
     String q = 'Update $tableName';
-    for (var val in values.entries) {
-      if (columns.contains(val.key)) {
-        q += ' SET ${val.key} = "${val.value}"';
-        if (val.key != values.keys.last) {
-          q += ',';
+    try {
+      for (var val in values.entries) {
+        if (columns.contains(val.key)) {
+          q += ' SET ${val.key} = "${val.value}"';
+          if (val.key != values.keys.last) {
+            q += ',';
+          }
         }
       }
+      q = _getWhereQuery(q);
+      q = _getOrderBy(q);
+      q = _getLimitOffset(q);
+      _reset();
+      final db = await getDatabase;
+      return await db.rawUpdate(q);
+    } catch (e) {
+      throw Exception(e.toString() + ' \n $q');
     }
-    q = _getWhereQuery(q);
-    q = _getOrderBy(q);
-    q = _getLimitOffset(q);
-    _reset();
-    final db = await getDatabase;
-    return await db.rawUpdate(q);
   }
 
   ///   Delete rows from table and return number of changes.
@@ -537,16 +562,22 @@ abstract class Eloquent {
   /// ```
   Future<int> delete() async {
     String query = 'Delete';
-    _selectedColumns = [];
-    _distinct = false;
-    _orderBy = null;
-    _groupBy = null;
-    query += _generateQuery('');
+    try {
+      _selectedColumns = [];
+      _distinct = false;
+      _orderBy = null;
+      _groupBy = null;
+      _limit = null;
+      _offset = null;
+      query += _generateQuery('');
 
-    _reset();
+      _reset();
 
-    Database _db = await getDatabase;
-    return await _db.rawDelete(query);
+      Database _db = await getDatabase;
+      return await _db.rawDelete(query);
+    } catch (e) {
+      throw Exception(e.toString() + ' \n $query');
+    }
   }
 
   ///  Delete a row by primary key.
@@ -564,6 +595,113 @@ abstract class Eloquent {
       where: getPrimaryColumn + ' = ?',
       whereArgs: [value],
     );
+  }
+
+  // Relationships
+
+  /// One-to-one relationship ( experimental )
+  Future<Map<String, Object?>?> belongsTo(String table,
+      {String? foreignKey, String? parentKey}) async {
+    String? q;
+    try {
+      Database _db = await getDatabase;
+      String? _foreignKey;
+      String? _parentKey;
+      if (foreignKey == null) {
+        List<String> columNames = await getColumnNames(tableName);
+        List possibleColumnNames = columNames
+            .where((element) =>
+                element.contains(table.substring(0, tableName.length - 2)))
+            .toList();
+        if (possibleColumnNames.isEmpty) {
+          throw Exception(
+              'foreignKey not found. Please specify custom foreignKey arg');
+        }
+        _foreignKey = possibleColumnNames.first;
+      } else {
+        _foreignKey = foreignKey;
+      }
+
+      if (!_foreignKey!.contains('_')) {
+        throw Exception('Foreign Key should have underscore e.g. car_id');
+      }
+
+      if (parentKey == null) {
+        String parentColumn = _foreignKey.split('_')[1];
+        List<String> columNames = await getColumnNames(table);
+        if (!columNames.contains(parentColumn)) {
+          throw Exception('parent key not found in parent table');
+        }
+        _parentKey = parentColumn;
+      } else {
+        _parentKey = parentKey;
+      }
+
+      q = 'Select parent.* from $table parent, $tableName child WHERE child.$_foreignKey = parent.$_parentKey AND';
+      q = _getWhereQuery(q, prefix: '', table: 'child');
+
+      var results = await _db.rawQuery(q);
+      if (results.isNotEmpty) {
+        return results.first;
+      }
+      return null;
+    } catch (e) {
+      throw Exception(e.toString() + '\n $q');
+    }
+  }
+
+  // foreignKey will be 'user_id' from 'cars' and parentKey will be 'id' from users
+  ///  One-to-one relationship ( experimental )
+  Future<Map<String, Object?>?> hasOne(String table,
+      {String? foreignKey, String? parentKey}) async {
+    String? q;
+    try {
+      Database _db = await getDatabase;
+      String? _foreignKey;
+      String? _parentKey;
+      String childTableName = table;
+      String parentTableName = tableName;
+      if (foreignKey == null) {
+        List<String> columNames = await getColumnNames(childTableName);
+        List possibleColumnNames = columNames
+            .where((element) => element.contains(
+                parentTableName.substring(0, parentTableName.length - 2)))
+            .toList();
+        if (possibleColumnNames.isEmpty) {
+          throw Exception(
+              'foreignKey not found. Please specify custom foreignKey arg');
+        }
+        _foreignKey = possibleColumnNames.first;
+      } else {
+        _foreignKey = foreignKey;
+      }
+
+      if (!_foreignKey!.contains('_')) {
+        throw Exception('Foreign Key must have underscore e.g. car_id');
+      }
+
+      if (parentKey == null) {
+        String parentColumn = _foreignKey.split('_')[1];
+        List<String> columNames = await getColumnNames(parentTableName);
+        if (!columNames.contains(parentColumn)) {
+          throw Exception('parent key not found in parent table');
+        }
+        _parentKey = parentColumn;
+      } else {
+        _parentKey = parentKey;
+      }
+      q = 'Select child.* from $childTableName child, $parentTableName parent WHERE child.$_foreignKey = parent.$_parentKey AND';
+      q = _getWhereQuery(q, prefix: '', table: 'child');
+      q += ' LIMIT 1';
+
+      var results = await _db.rawQuery(q);
+      if (results.isNotEmpty) {
+        return results.first;
+      }
+      return null;
+    } catch (e) {
+      throw Exception(e.toString() + '\n $q');
+    }
   }
 }
 
