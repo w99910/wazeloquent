@@ -39,21 +39,20 @@ class _BasicState extends State<Basic> {
   }
 
   createUser() async {
-    var data = await userEloquent.create(values: {
-      'name': names[Random().nextInt(names.length)],
-      'password': 'pass',
-      'createdAt': DateTime.now().toIso8601String(),
-      'updatedAt': DateTime.now().toIso8601String()
-    });
-
-    // var data = await userEloquent.createIfNotExists(check: {
-    //   'id': 1
-    // }, create: {
-    //   'name': names[Random().nextInt(4)],
+    // var data = await userEloquent.create(values: {
+    //   'name': names[Random().nextInt(names.length)],
     //   'password': 'pass',
     //   'createdAt': DateTime.now().toIso8601String(),
     //   'updatedAt': DateTime.now().toIso8601String()
     // });
+    var name = names[Random().nextInt(names.length)];
+    var data = await userEloquent.createIfNotExists(check: {
+      'name': name
+    }, create: {
+      'password': 'pass',
+      'createdAt': DateTime.now().toIso8601String(),
+      'updatedAt': DateTime.now().toIso8601String()
+    });
     showSnack('Created id - $data');
     loadUsers();
   }

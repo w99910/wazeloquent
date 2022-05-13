@@ -407,6 +407,30 @@ Available methods are as follows.
   Database db = await UserEloquent.getDatabase;
   ```
 
+## Models
+
+It is not mandatory for your models to extend `Model` class. But extending `Model` class will provide some more methods to provide your model to interact with tables.
+
+To use the following methods, let your model extend `Model` class.
+For example
+
+```dart
+class User extends Model{
+  //configure required methods.
+}
+```
+
+- [save](#save)
+  Save the updated properties of your model.
+
+  ```dart
+  User user = User({name:'John',password:'pass'});
+  user.name = 'Doe';
+  user.save(); // update the user's name to 'Doe' in table.
+  ```
+
+- ### save
+
 ## Relationships
 
 Before implementing for relationship, enable foreign key options in db.
@@ -423,7 +447,7 @@ Before implementing for relationship, enable foreign key options in db.
 
 ### One-To-One
 
-- ### Scenario
+- ### Example Scenario
 
   For example, a user may have a car and a car belongs to a user.
 

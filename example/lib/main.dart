@@ -5,6 +5,7 @@ import 'package:example/eloquents/car.dart';
 import 'package:example/eloquents/user.dart';
 import 'package:example/models/user.dart';
 import 'package:example/pages/basic.dart';
+import 'package:example/pages/one_to_many.dart';
 import 'package:example/pages/one_to_one.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -59,7 +60,11 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-List<Widget> pages = [const Basic(), const OneToOneWidget()];
+List<Widget> pages = [
+  const Basic(),
+  const OneToOneWidget(),
+  const OneToManyWidget()
+];
 
 class _MyHomePageState extends State<MyHomePage> {
   List<User> users = [];
@@ -81,6 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Text('Basic'),
               ),
               Tab(child: Text('One To One')),
+              Tab(child: Text('One To Many')),
             ]),
           ),
           body: TabBarView(children: pages)),
