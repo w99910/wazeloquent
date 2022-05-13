@@ -1,8 +1,9 @@
 import 'package:example/eloquents/car.dart';
 import 'package:example/eloquents/user.dart';
 import 'package:example/models/car.dart';
+import 'package:wazeloquent/wazeloquent.dart';
 
-class User {
+class User extends Model with OneToOne {
   int id;
   String name;
   String password;
@@ -26,8 +27,7 @@ class User {
   }
 
   Future<Car?> getCar() async {
-    var userEloquent = UserEloquent();
-    var car = await userEloquent.where('id', id.toString()).hasOne('cars');
+    var car = await hasOne('cars');
     if (car != null) {
       return Car.fromDB(car);
     }
@@ -44,4 +44,18 @@ class User {
     user.car = await user.getCar();
     return user;
   }
+
+  @override
+  Eloquent get eloquent => UserEloquent();
+
+  @override
+  String get primaryValue => id.toString();
+
+  @override
+  Map<String, Object?> get toJson => {
+        'name': name,
+        'password': password,
+        'createdAt': createdAt?.toIso8601String(),
+        'updatedAt': updatedAt?.toIso8601String()
+      };
 }

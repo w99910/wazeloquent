@@ -7,11 +7,11 @@ import 'package:example/models/car.dart';
 import 'package:example/models/user.dart';
 import 'package:flutter/material.dart';
 
-class OneToOne extends StatefulWidget {
-  const OneToOne({Key? key}) : super(key: key);
+class OneToOneWidget extends StatefulWidget {
+  const OneToOneWidget({Key? key}) : super(key: key);
 
   @override
-  State<OneToOne> createState() => _OneToOneState();
+  State<OneToOneWidget> createState() => _OneToOneWidgetState();
 }
 
 const carNames = [
@@ -22,7 +22,7 @@ const carNames = [
   'Jeep Gladiator'
 ];
 
-class _OneToOneState extends State<OneToOne> {
+class _OneToOneWidgetState extends State<OneToOneWidget> {
   final CarEloquent carEloquent = CarEloquent();
   final UserEloquent userEloquent = UserEloquent();
   List<User> users = [];

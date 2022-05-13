@@ -407,6 +407,51 @@ Available methods are as follows.
   Database db = await UserEloquent.getDatabase;
   ```
 
+## Relationships
+
+Before implementing for relationship, enable foreign key options in db.
+
+```dart
+ db.onConfigure([
+    Future(() {
+      return (Database db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      };
+    })
+  ]);
+```
+
+### One-To-One
+
+- ### Scenario
+
+  For example, a user may have a car and a car belongs to a user.
+
+- ### Creating foreign fields
+
+  You can create foreign keys by using `DB.foreign()`.
+
+  > Rules: foreignKey must be in `parentTable_parentKey` format.
+
+  For example, let's create `cars` table.
+
+  ```dart
+   await DB.createTable(db, tableName: 'cars', columns: {
+        'id': [ColumnType.idType],
+        'user_id': DB.foreign(
+            foreignKey: 'user_id',
+            parentKey: 'id',
+            parentTable: 'users',
+            type: ColumnType.integerType,
+            onDelete: DBActions.cascade,
+            onUpdate: null), // will output `user_id Integer References users(id) On Delete CASCADE`
+        'name': [ColumnType.stringType, ColumnType.notNull],
+        'createdAt': [ColumnType.stringType, ColumnType.notNull],
+        'updatedAt': [ColumnType.stringType, ColumnType.notNull],
+      });
+    };
+  ```
+
 ## Additional information
 
 > Check example [here](https://github.com/w99910/wazeloquent/tree/master/example)

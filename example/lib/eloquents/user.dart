@@ -11,10 +11,6 @@ class UserEloquent extends Eloquent {
   @override
   String get tableName => 'users';
 
-  test() {
-    belongsTo('passwords');
-  }
-
   static Future<Function(Database)> onOpen = Future(() {
     return (Database db) async {
       await DB.createTable(db, tableName: 'users', columns: {

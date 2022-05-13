@@ -59,7 +59,7 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-List<Widget> pages = [const Basic(), const OneToOne()];
+List<Widget> pages = [const Basic(), const OneToOneWidget()];
 
 class _MyHomePageState extends State<MyHomePage> {
   List<User> users = [];

@@ -1,4 +1,3 @@
-import 'package:example/models/car.dart';
 import 'package:wazeloquent/wazeloquent.dart';
 
 class CarEloquent extends Eloquent {
@@ -10,10 +9,6 @@ class CarEloquent extends Eloquent {
 
   @override
   String get tableName => 'cars';
-
-  user(String id) async {
-    return await where('id', id).belongsTo('users');
-  }
 
   static Future<Function(Database)> onOpen = Future(() {
     return (Database db) async {
