@@ -69,18 +69,22 @@ abstract class Eloquent {
       var whereOr =
           _wheres.where((element) => element.conjunction == 'or').toList();
       for (var where in whereAnd.asMap().entries) {
+        String prefix = where.value.operator == 'IN' ? '(' : '"';
+        String postfix = where.value.operator == 'IN' ? ')' : '"';
         q +=
-            ' $table.${where.value.columnName} ${where.value.operator} "${where.value.value}"';
+            ' $table.${where.value.columnName} ${where.value.operator} $prefix${where.value.value}$postfix';
         if (where.key != _wheres.length - 1) {
           q += ' ${where.value.conjunction}';
         }
       }
       for (var where in whereOr.asMap().entries) {
+        String prefix = where.value.operator == 'IN' ? '(' : '"';
+        String postfix = where.value.operator == 'IN' ? ')' : '"';
         if (where.key == 0) {
           q += ' (';
         }
         q +=
-            ' $table.${where.value.columnName} ${where.value.operator} "${where.value.value}"';
+            ' $table.${where.value.columnName} ${where.value.operator} $prefix${where.value.value}$postfix';
         if (where.key != _wheres.length - 1) {
           q += ' ${where.value.conjunction}';
         } else {
@@ -171,7 +175,7 @@ abstract class Eloquent {
   /////get users where name has 'j'
   ///userEloquent.where('name','%j%',operator:Operator.like).get();
   ///```
-  Eloquent where(String columnName, String value,
+  Eloquent where(String columnName, value,
       {Operator operator = Operator.equal}) {
     if (!columns.contains(columnName)) {
       throw Exception('Column "$columnName" not found');
@@ -197,13 +201,42 @@ abstract class Eloquent {
         _operator = 'LIKE';
 
         break;
+      case Operator.inArray:
+        if (value is! List) {
+          throw Exception('Value must be List type.');
+        }
+        String temp = '';
+        List values = value;
+        values.asMap().entries.forEach((element) {
+          temp += element.value.toString();
+          if (element.key != values.length - 1) {
+            temp += ',';
+          }
+        });
+        value = temp;
+        _operator = 'IN';
+        break;
     }
     _wheres.add(_Where(
         columnName: columnName,
-        value: value,
+        value: value.toString(),
         operator: _operator,
         conjunction: 'and'));
     return this;
+  }
+
+  /// Get all records of which `columnName` include any of `values`.
+  /// ```
+  /// var userEloquent = UserEloquent();
+  ///
+  /// // get users where column `id` matches any of values [1,2,4]
+  /// userEloquent.whereIn('id',[1,2,4]).get();
+  /// ```
+  Eloquent whereIn(String columnName, List values) {
+    if (!columns.contains(columnName)) {
+      throw Exception('Column "$columnName" not found');
+    }
+    return where(columnName, values, operator: Operator.inArray);
   }
 
   /// Sort rows in either descending or ascending order.
@@ -336,7 +369,7 @@ abstract class Eloquent {
 
       return await _db.rawQuery(query);
     } catch (e) {
-      throw Exception(e.toString() + ' \n $query');
+      throw Exception('Generated query: "$query" \n' + e.toString());
     }
   }
 
@@ -355,7 +388,7 @@ abstract class Eloquent {
       Database _db = await getDatabase;
       return await _db.rawQuery(q);
     } catch (e) {
-      throw Exception(e.toString() + ' \n $q');
+      throw Exception('Generated query: "$q" \n' + e.toString());
     }
   }
 
@@ -442,7 +475,7 @@ abstract class Eloquent {
       Database _db = await getDatabase;
       return await _db.rawQuery(q);
     } catch (e) {
-      throw Exception(e.toString() + ' \n $q');
+      throw Exception('Generated query: "$q" \n' + e.toString());
     }
   }
 
@@ -542,7 +575,7 @@ abstract class Eloquent {
       final db = await getDatabase;
       return await db.rawUpdate(q);
     } catch (e) {
-      throw Exception(e.toString() + ' \n $q');
+      throw Exception('Generated query: "$q" \n' + e.toString());
     }
   }
 
@@ -574,7 +607,7 @@ abstract class Eloquent {
       Database _db = await getDatabase;
       return await _db.rawDelete(query);
     } catch (e) {
-      throw Exception(e.toString() + ' \n $query');
+      throw Exception('Generated query: "$query" \n' + e.toString());
     }
   }
 
@@ -598,7 +631,7 @@ abstract class Eloquent {
 
 enum Sort { ascending, descending }
 
-enum Operator { equal, greaterThan, lessThan, notEqual, like }
+enum Operator { equal, greaterThan, lessThan, notEqual, like, inArray }
 
 class _Where {
   String columnName;

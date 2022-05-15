@@ -1,3 +1,9 @@
+## 0.0.2
+
+- Added `whereIn` method.
+- Added new relationships - `OneToOne` and `OneToMany`.
+- Updated doc.
+
 ## 0.0.1+5
 
 - Added method to specify `filePath` for db.

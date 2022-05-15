@@ -84,7 +84,9 @@ class _BasicState extends State<Basic> {
   }
 
   filterUser() async {
-    var data = await userEloquent.where('name', 'Dean').get();
+    // var data = await userEloquent.where('name', 'Dean').get();
+
+    var data = await userEloquent.whereIn('id', [1, 2, 3]).get();
     if (data == null || data.isEmpty) {
       showSnack('No user found');
       return;

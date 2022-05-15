@@ -12,4 +12,8 @@ abstract class Model {
         .where(eloquent.getPrimaryColumn, primaryValue)
         .update(toJson);
   }
+
+  Future<int> delete() async {
+    return await eloquent.deleteBy(primaryValue);
+  }
 }
