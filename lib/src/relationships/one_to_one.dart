@@ -1,6 +1,8 @@
+import 'package:wazeloquent/src/models/relationship_model.dart';
+import 'package:wazeloquent/src/support/generator.dart';
 import 'package:wazeloquent/wazeloquent.dart';
 
-mixin OneToOne on Model {
+mixin OneToOne on RelationshipModel {
   /// If `foreignKey` is not specified, `foreignKey` will be issumed as the first column which contains `parent` table name the in the child table.
   /// e.g for a car belonging to a user, foreignKey will be assumed as `user_id` which includes the name of parentTable.
   ///

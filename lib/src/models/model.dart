@@ -13,6 +13,12 @@ abstract class Model {
         .update(toJson);
   }
 
+  Future<int> update(Map<String, Object?> values) {
+    return eloquent
+        .where(eloquent.getPrimaryColumn, primaryValue)
+        .update(values);
+  }
+
   Future<int> delete() async {
     return await eloquent.deleteBy(primaryValue);
   }

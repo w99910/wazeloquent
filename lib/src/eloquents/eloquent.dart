@@ -1,44 +1,9 @@
+import 'package:wazeloquent/src/enums/operator.dart';
+import 'package:wazeloquent/src/support/generator.dart';
 import 'package:wazeloquent/wazeloquent.dart';
 
-abstract class Eloquent {
-  List<String> get columns;
-
-  String get tableName;
-
+abstract class Eloquent with Generator {
   Future<Database> get getDatabase async => DB.instance.getDB();
-
-  String get getPrimaryColumn;
-
-  String? _orderBy;
-
-  String? _groupBy;
-
-  bool _distinct = false;
-
-  Sort? _sort;
-
-  int? _offset;
-
-  int? _limit;
-
-  List<String>? _selectedColumns;
-
-  List<_Where> _wheres = [];
-
-  _reset() {
-    _orderBy = null;
-    _groupBy = null;
-    _distinct = false;
-    _sort = null;
-    _offset = null;
-    _limit = null;
-    _selectedColumns = null;
-    _wheres = [];
-  }
-
-  String? _getSelectedColumns() {
-    return _toString(_selectedColumns);
-  }
 
   Future<List<String>> getColumnNames(String table) async {
     Database _db = await getDatabase;
@@ -46,308 +11,26 @@ abstract class Eloquent {
     return data.map((e) => e['name'].toString()).toList();
   }
 
-  String? _toString(List<String>? values) {
-    String? val;
-    if (values != null && values.isNotEmpty) {
-      val = '';
-      for (var col in _selectedColumns!.asMap().entries) {
-        val = val! + col.value;
-        if (col.key != _selectedColumns!.length - 1) {
-          val = val + ',';
-        }
-      }
-    }
-    return val;
-  }
-
-  String _getWhereQuery(String q, {String? prefix, String? table}) {
-    if (_wheres.isNotEmpty) {
-      q += prefix ?? ' WHERE';
-      table = table ?? tableName;
-      var whereAnd =
-          _wheres.where((element) => element.conjunction == 'and').toList();
-      var whereOr =
-          _wheres.where((element) => element.conjunction == 'or').toList();
-      for (var where in whereAnd.asMap().entries) {
-        String prefix = where.value.operator == 'IN' ? '(' : '"';
-        String postfix = where.value.operator == 'IN' ? ')' : '"';
-        q +=
-            ' $table.${where.value.columnName} ${where.value.operator} $prefix${where.value.value}$postfix';
-        if (where.key != _wheres.length - 1) {
-          q += ' ${where.value.conjunction}';
-        }
-      }
-      for (var where in whereOr.asMap().entries) {
-        String prefix = where.value.operator == 'IN' ? '(' : '"';
-        String postfix = where.value.operator == 'IN' ? ')' : '"';
-        if (where.key == 0) {
-          q += ' (';
-        }
-        q +=
-            ' $table.${where.value.columnName} ${where.value.operator} $prefix${where.value.value}$postfix';
-        if (where.key != _wheres.length - 1) {
-          q += ' ${where.value.conjunction}';
-        } else {
-          q += ' )';
-        }
-      }
-    }
-    return q;
-  }
-
-  String _getOrderBy(String q) {
-    if (_orderBy != null) {
-      q += ' ORDER BY `$_orderBy`';
-      if (_sort != null) {
-        switch (_sort!) {
-          case Sort.ascending:
-            q += ' ASC';
-            break;
-          case Sort.descending:
-            q += ' DESC';
-            break;
-        }
-      }
-    }
-    return q;
-  }
-
-  String _getGroupBy(String q) {
-    if (_groupBy != null) {
-      q += ' GROUP BY `$_groupBy`';
-      if (_sort != null) {
-        switch (_sort!) {
-          case Sort.ascending:
-            q += ' ASC';
-            break;
-          case Sort.descending:
-            q += ' DESC';
-            break;
-        }
-      }
-    }
-    return q;
-  }
-
-  String _getLimitOffset(String q) {
-    _limit = _limit ?? -1;
-    q += ' LIMIT $_limit';
-    if (_offset != null) {
-      q += ' OFFSET $_offset';
-    }
-    return q;
-  }
-
-  String _generateQuery(String selectedColumns) {
-    String q = _distinct ? ' DISTINCT' : '';
-    q = ' $selectedColumns from $tableName';
-    q = _getWhereQuery(q);
-    q = _getOrderBy(q);
-    q = _getGroupBy(q);
-    q = _getLimitOffset(q);
-    return q;
-  }
-
-  Future<List<Map<String, Object?>>> _where(Map<String, Object?> object) async {
+  Future<List<Map<String, dynamic>>> getForeignKeys(String table) async {
     Database _db = await getDatabase;
-    var where = '';
-    var whereArgs = [];
-    object.forEach((key, value) {
-      where = where == '' ? key + ' = ?' : where + ' and ' + key + ' = ?';
-      whereArgs.add(value);
-    });
-    return await _db.query(tableName,
-        columns: columns, where: where, whereArgs: whereArgs);
-  }
-
-  /// Specify 'where' conditions in query.
-  /// ```
-  /// var userEloquent = UserEloquent();
-  /// //get users where name is john
-  /// userEloquent.where('name','john').get();
-  ///
-  /////get users where name is john and createdAt greater than   2022-05-03
-  ///userEloquent.where('name','john').where('createdAt','2022-05-03', operator:Operator.greaterThan).get();
-  ///
-  /////get users where name is not john
-  ///userEloquent.where('name','john',operator:Operator.notEqual).get();
-  ///
-  /////get users where name has 'j'
-  ///userEloquent.where('name','%j%',operator:Operator.like).get();
-  ///```
-  Eloquent where(String columnName, value,
-      {Operator operator = Operator.equal}) {
-    if (!columns.contains(columnName)) {
-      throw Exception('Column "$columnName" not found');
+    var data =
+        await _db.rawQuery("PRAGMA foreign_key_list(" + table + ")", null);
+    List<Map<String, dynamic>> results = [];
+    if (data.isNotEmpty) {
+      for (var row in data) {
+        Map<String, dynamic> result = {};
+        result['id'] = row[0];
+        result['seq'] = row[1];
+        result['table'] = row[2];
+        result['from'] = row[3];
+        result['to'] = row[4];
+        result['onUpdate'] = row[5];
+        result['onDelete'] = row[6];
+        result['match'] = row[7];
+        results.add(result);
+      }
     }
-    String? _operator;
-    switch (operator) {
-      case Operator.equal:
-        _operator = '=';
-        break;
-      case Operator.greaterThan:
-        _operator = '>';
-
-        break;
-      case Operator.lessThan:
-        _operator = '<';
-
-        break;
-      case Operator.notEqual:
-        _operator = '!=';
-
-        break;
-      case Operator.like:
-        _operator = 'LIKE';
-
-        break;
-      case Operator.inArray:
-        if (value is! List) {
-          throw Exception('Value must be List type.');
-        }
-        String temp = '';
-        List values = value;
-        values.asMap().entries.forEach((element) {
-          temp += element.value.toString();
-          if (element.key != values.length - 1) {
-            temp += ',';
-          }
-        });
-        value = temp;
-        _operator = 'IN';
-        break;
-    }
-    _wheres.add(_Where(
-        columnName: columnName,
-        value: value.toString(),
-        operator: _operator,
-        conjunction: 'and'));
-    return this;
-  }
-
-  /// Get all records of which `columnName` include any of `values`.
-  /// ```
-  /// var userEloquent = UserEloquent();
-  ///
-  /// // get users where column `id` matches any of values [1,2,4]
-  /// userEloquent.whereIn('id',[1,2,4]).get();
-  /// ```
-  Eloquent whereIn(String columnName, List values) {
-    if (!columns.contains(columnName)) {
-      throw Exception('Column "$columnName" not found');
-    }
-    return where(columnName, values, operator: Operator.inArray);
-  }
-
-  /// Sort rows in either descending or ascending order.
-  /// ```
-  ///var userEloquent = UserEloquent();
-  ///
-  /// // sort users by 'name' column
-  ///userEloquent.orderBy('name').get();
-  ///
-  ///// sort users by 'name' column in descending order
-  ///userEloquent.orderBy('name',sort:Sort.descending).get();
-  ///```
-  Eloquent orderBy(String? columnName, {Sort? sort}) {
-    _orderBy = columnName;
-    _sort = sort;
-    return this;
-  }
-
-  /// Sort rows in descending order.
-  /// ```
-  /// var userEloquent = UserEloquent();
-  /// // sort users by 'name' column in descending order
-  /// userEloquent.orderByDesc('name').get();
-  ///```
-  Eloquent orderByDesc(String? columnName) {
-    _orderBy = columnName;
-    _sort = Sort.descending;
-    return this;
-  }
-
-  /// Group rows by column.
-  ///   ```dart
-  /// var userEloquent = UserEloquent();
-  ///
-  /// // group users by 'name' column
-  /// userEloquent.groupBy('name').get();
-  /// ```
-  Eloquent groupBy(String? columnName, {Sort? sort}) {
-    _groupBy = columnName;
-    _sort = sort;
-    return this;
-  }
-
-  /// Group rows by column in descending order.
-
-  /// ```dart
-  /// var userEloquent = UserEloquent();
-  ///
-  /// // group users by 'name' column
-  /// userEloquent.groupByDesc('name').get();
-  /// ```
-  Eloquent groupByDesc(String? columnName) {
-    _groupBy = columnName;
-    _sort = Sort.descending;
-    return this;
-  }
-
-  ///  Get latest row related to primary key. You can specify the column name.
-  ///
-  /// ```dart
-  /// var userEloquent = UserEloquent();
-  ///
-  ///  // Get latest user by 'id' which is primary key.
-  /// userEloquent.latest().get();
-  ///
-  /// // Get latest user by 'name';
-  /// userEloquent.latest(columnName:'name').get();
-  /// ```
-  Eloquent latest({String? columName}) {
-    _orderBy = columName ?? getPrimaryColumn;
-    _offset = 0;
-    _sort = Sort.descending;
-    _limit = 1;
-    return this;
-  }
-
-  /// Limit the number of rows in result
-  /// ```dart
-  /// var userEloquent = UserEloquent();
-  ///
-  /// // get first user where name is like j
-  /// userEloquent.where('name','%j%',operator:Operator.like).orderByDesc('name').take(1).get();
-  /// ```
-  Eloquent take(int? count) {
-    _limit = count;
-    return this;
-  }
-
-  /// Skip a given number of results.
-
-  /// ```dart
-  /// var userEloquent = UserEloquent();
-  ///
-  /// // skip 1 row and get next 10 users where name is like j
-  /// userEloquent.where('name','%j%',operator:Operator.like).orderByDesc('name').skip(1).take(10).get();
-  /// ```
-  Eloquent skip(int? offset) {
-    _offset = offset;
-    return this;
-  }
-
-  /// Get unique column values.
-  /// ```
-  ///  var userEloquent = UserEloquent();
-  ///// get unique rows related to column 'name'.
-  ///userEloquent.distinct(['name']).get();
-  ///```
-  Eloquent distinct(List<String>? columnNames) {
-    _selectedColumns = columnNames;
-    _distinct = true;
-    return this;
+    return results;
   }
 
   /// Return all rows from table.
@@ -360,12 +43,13 @@ abstract class Eloquent {
   /// //orderBy, limit will be ignored
   /// userEloquent.orderBy('name').limit(1).all();
   /// ```
+  @override
   Future<List<Map<String, Object?>>> all() async {
     String query = 'SELECT';
     try {
       Database _db = await getDatabase;
-      _reset();
-      query += _generateQuery('*');
+      resetAll();
+      query += generateQuery('*');
 
       return await _db.rawQuery(query);
     } catch (e) {
@@ -378,29 +62,19 @@ abstract class Eloquent {
   /// var userEloquent = UserEloquent();
   /// userEloquent.get();
   /// ```
+  @override
   Future<List<Map<String, Object?>>?> get() async {
     String q = 'Select';
     try {
-      q += _generateQuery(_getSelectedColumns() ?? '*');
+      q += generateQuery(getSelectedColumns() ?? '*');
 
-      _reset();
+      resetAll();
 
       Database _db = await getDatabase;
       return await _db.rawQuery(q);
     } catch (e) {
       throw Exception('Generated query: "$q" \n' + e.toString());
     }
-  }
-
-  /// Specify columns to be only included in results.
-  /// ```dart
-  /// var userEloquent = UserEloquent();
-  /// //return rows which have only 'name' column in results;
-  ///userEloquent.select(['name']);
-  ///```
-  Eloquent select(List<String> selectedColumns) {
-    _selectedColumns = selectedColumns;
-    return this;
   }
 
   /// Find row by primary key.
@@ -419,7 +93,7 @@ abstract class Eloquent {
       where: getPrimaryColumn + ' = ?',
       whereArgs: [primaryKeyValue],
     );
-    _reset();
+    resetAll();
     if (results.isNotEmpty) {
       return results[0];
     }
@@ -440,38 +114,32 @@ abstract class Eloquent {
   /// //specify searchable columns
   /// userEloquent.search('j',searchableColumns:['name']);
   /// ```
+  @override
   Future<List<Map<String, Object?>>> search(String keyword,
       {List<String>? searchableColumns}) async {
     String _key = '%$keyword%';
     String q = 'Select';
     try {
       List<String>? _usedColumns;
+      var _wheres = getWhereColumns();
       if (_wheres.isNotEmpty) {
         _usedColumns = _wheres.map((e) => e.columnName).toList();
         _wheres = [];
       }
       if (searchableColumns != null && searchableColumns.isNotEmpty) {
         for (var column in searchableColumns) {
-          _wheres.add(_Where(
-              columnName: column,
-              value: _key,
-              operator: 'LIKE',
-              conjunction: 'or'));
+          where(column, _key, operator: Operator.like, conjuncation: 'or');
         }
       } else {
         for (var column in columns) {
           if (_usedColumns != null && _usedColumns.contains(column)) {
             continue;
           }
-          _wheres.add(_Where(
-              columnName: column,
-              value: _key,
-              operator: 'LIKE',
-              conjunction: 'or'));
+          where(column, _key, operator: Operator.like, conjuncation: 'or');
         }
       }
-      q += _generateQuery(_getSelectedColumns() ?? '*');
-      _reset();
+      q += generateQuery(getSelectedColumns() ?? '*');
+      resetAll();
       Database _db = await getDatabase;
       return await _db.rawQuery(q);
     } catch (e) {
@@ -486,10 +154,23 @@ abstract class Eloquent {
   /// userEloquent.create({'name':'John','password':'pass'});
   ///
   /// ```
+  @override
   Future<int> create({required Map<String, Object?> values}) async {
-    _reset();
+    resetAll();
     final db = await getDatabase;
     return await db.insert(tableName, values);
+  }
+
+  Future<List<Map<String, Object?>>> _where(Map<String, Object?> object) async {
+    Database _db = await getDatabase;
+    var where = '';
+    var whereArgs = [];
+    object.forEach((key, value) {
+      where = where == '' ? key + ' = ?' : where + ' and ' + key + ' = ?';
+      whereArgs.add(value);
+    });
+    return await _db.query(tableName,
+        columns: columns, where: where, whereArgs: whereArgs);
   }
 
   /// Create a new row only if the value is not existed.
@@ -510,7 +191,7 @@ abstract class Eloquent {
       return null;
     }
     create.addAll(check);
-    _reset();
+    resetAll();
     return await db.insert(tableName, create);
   }
 
@@ -541,7 +222,7 @@ abstract class Eloquent {
           where: where,
           whereArgs: whereArgs);
     }
-    _reset();
+    resetAll();
     return await db.insert(tableName, {...check, ...inserts});
   }
 
@@ -557,6 +238,7 @@ abstract class Eloquent {
   /// userEloquent.where('id',1).update({'name':'john'});
   ///
   /// ```
+  @override
   Future<int> update(Map<String, Object?> values) async {
     String q = 'Update $tableName';
     try {
@@ -568,10 +250,13 @@ abstract class Eloquent {
           }
         }
       }
-      q = _getWhereQuery(q);
-      q = _getOrderBy(q);
-      q = _getLimitOffset(q);
-      _reset();
+
+      resetDistinct();
+      resetGroupBy();
+      resetSelectedColunns();
+      resetSort();
+      q = generateQuery(q);
+      resetAll();
       final db = await getDatabase;
       return await db.rawUpdate(q);
     } catch (e) {
@@ -591,18 +276,20 @@ abstract class Eloquent {
   /// userEloquent.where('name','%j%',operator:Operator.like).delete();
   ///
   /// ```
+  @override
   Future<int> delete() async {
     String query = 'Delete';
     try {
-      _selectedColumns = [];
-      _distinct = false;
-      _orderBy = null;
-      _groupBy = null;
-      _limit = null;
-      _offset = null;
-      query += _generateQuery('');
+      resetSelectedColunns();
+      resetDistinct();
+      resetOrderBy();
+      resetGroupBy();
+      resetLimit();
+      resetLimit();
+      resetOffset();
+      query += generateQuery('');
 
-      _reset();
+      resetAll();
 
       Database _db = await getDatabase;
       return await _db.rawDelete(query);
@@ -627,20 +314,4 @@ abstract class Eloquent {
       whereArgs: [value],
     );
   }
-}
-
-enum Sort { ascending, descending }
-
-enum Operator { equal, greaterThan, lessThan, notEqual, like, inArray }
-
-class _Where {
-  String columnName;
-  String value;
-  String operator;
-  String conjunction;
-  _Where(
-      {required this.columnName,
-      required this.value,
-      required this.operator,
-      required this.conjunction});
 }

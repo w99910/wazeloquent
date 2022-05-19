@@ -5,7 +5,7 @@ import 'package:example/eloquents/user.dart';
 import 'package:example/models/car.dart';
 import 'package:wazeloquent/wazeloquent.dart';
 
-class User extends Model with OneToOne, OneToMany {
+class User extends RelationshipModel with OneToOne, OneToMany {
   int id;
   String name;
   String password;
@@ -81,4 +81,16 @@ class User extends Model with OneToOne, OneToMany {
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String()
       };
+
+  @override
+  // TODO: implement columns
+  List<String> get columns => throw UnimplementedError();
+
+  @override
+  // TODO: implement getPrimaryColumn
+  String get getPrimaryColumn => throw UnimplementedError();
+
+  @override
+  // TODO: implement tableName
+  String get tableName => throw UnimplementedError();
 }

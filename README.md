@@ -9,7 +9,7 @@ WazEloquent is designed to deal with database without writing custom querys on y
 - Laravel Eloquent alike methods.
 - supported [relationships](#relationships)
 
-`## Getting started
+## Getting started
 
 - ### Extend eloquent and configure required methods
 
@@ -684,4 +684,4 @@ Before implementing for relationship, enable foreign key options in db.
 
 This package is develped bc of my future flutter projects and it has only small features for now. I am planning to implement `relationship` features in future.
 <br>
-I would be really glad if this package helps you. Cheers.
+I would be really happy if this package helps you. Cheers 🎉🎉

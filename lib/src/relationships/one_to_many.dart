@@ -1,6 +1,7 @@
+import 'package:wazeloquent/src/models/relationship_model.dart';
 import 'package:wazeloquent/wazeloquent.dart';
 
-mixin OneToMany on Model {
+mixin OneToMany on RelationshipModel {
   /// If `foreignKey` is not specified, `foreignKey` will be issumed as the first column which contains `parent` table name the in the child table.
   /// e.g for a car belonging to a user, foreignKey will be assumed as `user_id` which includes the name of parentTable.
   ///
@@ -51,7 +52,8 @@ mixin OneToMany on Model {
         _parentKey = parentKey;
       }
 
-      q = 'Select parent.* from $table parent, $childTable child WHERE child.$_foreignKey = parent.$_parentKey AND child.${eloquent.getPrimaryColumn} = "$primaryValue"';
+      // q = 'Select parent.* from $table parent, $childTable child WHERE child.$_foreignKey = parent.$_parentKey AND child.${eloquent.getPrimaryColumn} = "$primaryValue"';
+      q = '$table parent, $childTable child WHERE child.$_foreignKey = parent.$_parentKey AND child.${eloquent.getPrimaryColumn} = "$primaryValue"';
 
       var results = await _db.rawQuery(q);
       if (results.isNotEmpty) {
