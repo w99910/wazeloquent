@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:example/eloquents/car.dart';
 import 'package:example/eloquents/user.dart';
 import 'package:example/models/car.dart';
 import 'package:wazeloquent/wazeloquent.dart';
@@ -12,7 +11,7 @@ class User extends RelationshipModel with OneToOne, OneToMany {
   DateTime? createdAt;
   DateTime? updatedAt;
   Car? car;
-  final List<Car> cars = [];
+  List<Car> cars = [];
   User(
       {required this.id,
       required this.name,
@@ -29,21 +28,12 @@ class User extends RelationshipModel with OneToOne, OneToMany {
         updatedAt: DateTime.parse(user['updatedAt'].toString()));
   }
 
-  Future<Car?> getCar() async {
-    var car = await hasOne('cars');
-    if (car != null) {
-      return Car.fromDB(car);
-    }
-    return null;
+  Future<RelationshipModel> getCar() async {
+    return hasOne('cars');
   }
 
-  Future<List<Car>> getCars() async {
-    var data = await hasMany('cars');
-    List<Car> cars = [];
-    for (var car in data) {
-      cars.add(Car.fromDB(car));
-    }
-    return cars;
+  Future<RelationshipModel> getCars() async {
+    return hasMany('cars');
   }
 
   static Future<User> withCar(Map<String, Object?> data) async {
@@ -53,7 +43,10 @@ class User extends RelationshipModel with OneToOne, OneToMany {
         password: data['password'].toString(),
         createdAt: DateTime.parse(data['createdAt'].toString()),
         updatedAt: DateTime.parse(data['updatedAt'].toString()));
-    user.car = await user.getCar();
+    var cars = await (await user.getCar()).get();
+    if (cars != null && cars.isNotEmpty) {
+      user.car = Car.fromDB(cars.first);
+    }
     return user;
   }
 
@@ -64,7 +57,12 @@ class User extends RelationshipModel with OneToOne, OneToMany {
         password: data['password'].toString(),
         createdAt: DateTime.parse(data['createdAt'].toString()),
         updatedAt: DateTime.parse(data['updatedAt'].toString()));
-    user.cars.addAll(await user.getCars());
+    var cars = await (await user.getCars()).get();
+    if (cars != null && cars.isNotEmpty) {
+      for (var car in cars) {
+        user.cars.add(Car.fromDB(car));
+      }
+    }
     return user;
   }
 
@@ -81,16 +79,4 @@ class User extends RelationshipModel with OneToOne, OneToMany {
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String()
       };
-
-  @override
-  // TODO: implement columns
-  List<String> get columns => throw UnimplementedError();
-
-  @override
-  // TODO: implement getPrimaryColumn
-  String get getPrimaryColumn => throw UnimplementedError();
-
-  @override
-  // TODO: implement tableName
-  String get tableName => throw UnimplementedError();
 }

@@ -28,13 +28,15 @@ class Car extends RelationshipModel with OneToOne {
         id: int.parse(data['id'].toString()),
         userId: data['user_id'].toString(),
         name: data['name'].toString());
-    car.user = await car.getUser();
+    var users = await (await car.getUser()).get();
+    if (users != null && users.isNotEmpty) {
+      car.user = User.fromDB(users.first);
+    }
     return car;
   }
 
-  Future<User> getUser() async {
-    var user = await belongsTo('users');
-    return User.fromDB(user!);
+  Future<RelationshipModel> getUser() async {
+    return belongsTo('users');
   }
 
   @override
@@ -50,16 +52,4 @@ class Car extends RelationshipModel with OneToOne {
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String()
       };
-
-  @override
-  // TODO: implement columns
-  List<String> get columns => throw UnimplementedError();
-
-  @override
-  // TODO: implement getPrimaryColumn
-  String get getPrimaryColumn => throw UnimplementedError();
-
-  @override
-  // TODO: implement tableName
-  String get tableName => throw UnimplementedError();
 }

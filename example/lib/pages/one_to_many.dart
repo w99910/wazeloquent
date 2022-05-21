@@ -34,10 +34,10 @@ class _OneToManyWidgetState extends State<OneToManyWidget> {
     super.initState();
   }
 
-  showSnack(String message) {
+  showSnack(String message, {Duration? duration}) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
-      duration: const Duration(milliseconds: 600),
+      duration: duration ?? const Duration(milliseconds: 600),
     ));
   }
 
@@ -84,7 +84,7 @@ class _OneToManyWidgetState extends State<OneToManyWidget> {
       showSnack('Empty User');
       return;
     }
-    var data = await carEloquent.create(values: {
+    var data = await carEloquent.create({
       'name': carNames[Random().nextInt(carNames.length)],
       'user_id': users[Random().nextInt(users.length)].id,
       'createdAt': DateTime.now().toIso8601String(),
@@ -92,6 +92,13 @@ class _OneToManyWidgetState extends State<OneToManyWidget> {
     });
     showSnack('Created id - $data');
     loadUsers();
+  }
+
+  filterCars() async {
+    User user = users[Random().nextInt(users.length)];
+    showSnack(
+      'Filtering for cars which ${user.name} owns ... ',
+    );
   }
 
   delete() async {
@@ -102,6 +109,49 @@ class _OneToManyWidgetState extends State<OneToManyWidget> {
     var data = await carEloquent.where('id', cars.first.id.toString()).delete();
     showSnack('Delete rows - $data');
     loadCars();
+  }
+
+  search() async {
+    if (users.isEmpty) {
+      showSnack('Empty user');
+    }
+    User user = users[Random().nextInt(users.length)];
+    showSnack('Searching for "F" cars which ${user.name} owns ... ',
+        duration: const Duration(milliseconds: 1500));
+    var data = await (await user.getCars()).search('F');
+    List<String> searchCarIds = data.map((e) => e['id'].toString()).toList();
+    showSnack('Search rows - ${data.length}');
+    List<User> temp = [];
+    for (var user in users) {
+      if (user.cars.isNotEmpty &&
+          user.cars
+              .where((element) => searchCarIds.contains(element.id.toString()))
+              .isNotEmpty) {
+        temp.add(user);
+      }
+    }
+    setState(() {
+      users = temp;
+    });
+  }
+
+  orderDesc() async {
+    User user = users[Random().nextInt(users.length)];
+    showSnack('Ordering desc for ${user.name}',
+        duration: const Duration(milliseconds: 2000));
+    var data = await (await user.getCars()).orderByDesc('name').get();
+    int index = users.indexOf(user);
+    List<Car> temp = [];
+    user.cars = [];
+    if (data != null) {
+      for (var car in data) {
+        temp.add(Car.fromDB(car));
+      }
+    }
+    user.cars = temp;
+    setState(() {
+      users[index] = user;
+    });
   }
 
   @override
@@ -154,6 +204,7 @@ class _OneToManyWidgetState extends State<OneToManyWidget> {
             width: size.width * 0.7,
             child: Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: [
                 ElevatedButton(
                     onPressed: create, child: const Text('Create Car')),
@@ -161,15 +212,15 @@ class _OneToManyWidgetState extends State<OneToManyWidget> {
                     onPressed: delete, child: const Text('Delete Car')),
                 ElevatedButton(
                     onPressed: () {}, child: const Text('Update Car')),
-                // ElevatedButton(
-                //     onPressed: () {},
-                //     child: const Text('Filter Cars by user name')),
-                // ElevatedButton(
-                //     onPressed: () {}, child: const Text('Order desc')),
-                // ElevatedButton(
-                //     onPressed: loadUsers, child: const Text('Reload')),
-                // ElevatedButton(onPressed: () {}, child: const Text('Skip')),
-                // ElevatedButton(onPressed: () {}, child: const Text('Take 2'))
+                ElevatedButton(
+                    onPressed: filterCars, child: const Text('Filter Car')),
+                ElevatedButton(
+                    onPressed: search,
+                    child: const Text('Search cars via user')),
+                ElevatedButton(
+                    onPressed: orderDesc, child: const Text('Order desc')),
+                ElevatedButton(
+                    onPressed: loadUsers, child: const Text('Reload')),
               ],
             ),
           )

@@ -79,26 +79,29 @@ class _OneToOneWidgetState extends State<OneToOneWidget> {
     });
   }
 
+  update() async {
+    if (cars.isEmpty) {
+      showSnack('Empty car');
+      return;
+    }
+    User user = users[Random().nextInt(users.length)];
+    var data = await (await user.getCar()).update({'name': 'Audi R8'});
+
+    showSnack('Updated - $data');
+    loadCars();
+  }
+
   create() async {
     if (users.isEmpty) {
       showSnack('Empty User');
       return;
     }
-    var data = await carEloquent.create(values: {
+    var data =
+        await (await users[Random().nextInt(users.length)].getCar()).create({
       'name': carNames[Random().nextInt(carNames.length)],
-      'user_id': users[Random().nextInt(users.length)].id,
       'createdAt': DateTime.now().toIso8601String(),
       'updatedAt': DateTime.now().toIso8601String()
     });
-
-    // var data = await userEloquent.createIfNotExists(check: {
-    //   'id': 1
-    // }, create: {
-    //   'name': names[Random().nextInt(4)],
-    //   'password': 'pass',
-    //   'createdAt': DateTime.now().toIso8601String(),
-    //   'updatedAt': DateTime.now().toIso8601String()
-    // });
     showSnack('Created id - $data');
     loadCars();
   }
@@ -108,8 +111,9 @@ class _OneToOneWidgetState extends State<OneToOneWidget> {
       showSnack('Empty car');
       return;
     }
-    var data = await carEloquent.where('id', cars.first.id.toString()).delete();
-    showSnack('Delete rows - $data');
+    User user = users[Random().nextInt(users.length)];
+    var data = await (await user.getCar()).delete();
+    showSnack('Delete rows - $data where user name : ${user.name}');
     loadCars();
   }
 
@@ -145,22 +149,16 @@ class _OneToOneWidgetState extends State<OneToOneWidget> {
             width: size.width * 0.7,
             child: Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: [
                 ElevatedButton(
                     onPressed: create, child: const Text('Create Car')),
                 ElevatedButton(
                     onPressed: delete, child: const Text('Delete Car')),
                 ElevatedButton(
-                    onPressed: () {}, child: const Text('Update Car')),
-                ElevatedButton(
-                    onPressed: () {},
-                    child: const Text('Filter Cars by user name')),
-                ElevatedButton(
-                    onPressed: () {}, child: const Text('Order desc')),
+                    onPressed: update, child: const Text('Update Car')),
                 ElevatedButton(
                     onPressed: loadUsers, child: const Text('Reload')),
-                ElevatedButton(onPressed: () {}, child: const Text('Skip')),
-                ElevatedButton(onPressed: () {}, child: const Text('Take 2'))
               ],
             ),
           )

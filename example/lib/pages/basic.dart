@@ -155,6 +155,7 @@ class _BasicState extends State<Basic> {
             width: size.width * 0.7,
             child: Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: [
                 ElevatedButton(
                     onPressed: createUser, child: const Text('Create User')),
