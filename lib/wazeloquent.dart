@@ -8,3 +8,4 @@ export 'src/models/model.dart';
 export 'src/models/relationship_model.dart';
 export 'src/relationships/one_to_one.dart';
 export 'src/relationships/one_to_many.dart';
+export 'src/relationships/many_to_many.dart';

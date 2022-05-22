@@ -1,6 +1,4 @@
 import 'package:wazeloquent/src/models/relationship_model.dart';
-import 'package:wazeloquent/src/support/generator.dart';
-import 'package:wazeloquent/wazeloquent.dart';
 
 mixin OneToOne on RelationshipModel {
   /// If `foreignKey` is not specified, `foreignKey` will be issumed as the first column which contains `parent` table name the in the child table.
@@ -15,57 +13,58 @@ mixin OneToOne on RelationshipModel {
   ///   }
   /// }
   /// ```
-  Future<Map<String, Object?>?> belongsTo(String parentTable,
+  Future<RelationshipModel> belongsTo(String parentTable,
       {String? foreignKey, String? parentKey}) async {
-    String? q;
-    try {
-      Database _db = await eloquent.getDatabase;
-      String? _foreignKey;
-      String? _parentKey;
-      String childTable = eloquent.tableName;
-      List<String> columNames = await eloquent.getColumnNames(childTable);
-      if (foreignKey == null) {
-        List possibleColumnNames = columNames
-            .where((element) => element
-                .contains(parentTable.substring(0, parentTable.length - 2)))
+    String? _foreignKey;
+    String? _parentKey;
+    String childTable = eloquent.tableName;
+    List<Map<String, dynamic>> foreignKeys =
+        (await eloquent.getForeignKeys(table: childTable))
+            .where((element) => element['table'] == parentTable)
             .toList();
-        if (possibleColumnNames.isEmpty) {
-          throw Exception(
-              'foreignKey not found. Please specify custom foreignKey arg');
-        }
-        _foreignKey = possibleColumnNames.first;
-      } else {
-        if (!columNames.contains(foreignKey)) {
-          throw Exception('foreign Key not found');
-        }
-        _foreignKey = foreignKey;
-      }
-
-      if (!_foreignKey!.contains('_')) {
-        throw Exception('Foreign Key should have underscore e.g. car_id');
-      }
-
-      if (parentKey == null) {
-        String parentColumn = _foreignKey.split('_')[1];
-        List<String> columNames = await eloquent.getColumnNames(parentTable);
-        if (!columNames.contains(parentColumn)) {
-          throw Exception('parent key not found in parent table');
-        }
-        _parentKey = parentColumn;
-      } else {
-        _parentKey = parentKey;
-      }
-
-      q = 'Select parent.* from $parentTable parent, $childTable child WHERE child.$_foreignKey = parent.$_parentKey AND child.${eloquent.getPrimaryColumn} = "$primaryValue"';
-
-      var results = await _db.rawQuery(q);
-      if (results.isNotEmpty) {
-        return results.first;
-      }
-      return null;
-    } catch (e) {
-      throw Exception('Generated query: "$q" \n' + e.toString());
+    if (foreignKeys.isEmpty) {
+      throw Exception(
+          'There is no foreign key related to $parentTable in $tableName');
     }
+
+    Map<String, dynamic>? foreignInfo;
+    if (foreignKeys.length > 1 && foreignKey == null) {
+      throw Exception(
+          'Please specify foreign key since there are more than one foreign keys in $tableName');
+    }
+
+    if (foreignKey == null) {
+      foreignInfo = foreignKeys.first;
+      _foreignKey = foreignInfo['from'];
+    } else {
+      if (foreignKeys
+          .where((element) => element['from'] == foreignKey)
+          .isEmpty) {
+        throw Exception('foreign Key not found');
+      }
+      foreignInfo = foreignKeys.firstWhere(
+          (element) => element['from'] == foreignKey,
+          orElse: () => {});
+      _foreignKey = foreignKey;
+    }
+
+    if (parentKey == null) {
+      _parentKey = foreignInfo['to'];
+    } else {
+      List<String> columNames =
+          await eloquent.getColumnNames(table: parentTable);
+      if (!columNames.contains(parentKey)) {
+        throw Exception('parent key not found in parent table');
+      }
+      _parentKey = parentKey;
+    }
+
+    finalForeignKey = _foreignKey;
+    finalParentKey = _parentKey;
+
+    query =
+        '$parentTable table1, $childTable table2 WHERE table2.$_foreignKey = table1.$_parentKey AND table2.${eloquent.getPrimaryColumn} = "$primaryValue"';
+    return this;
   }
 
   /// If `foreignKey` is not specified, `foreignKey` will be issumed as the first column which contains `parent` table name the in the child table.
@@ -80,57 +79,57 @@ mixin OneToOne on RelationshipModel {
   ///   }
   /// }
   /// ```
-  Future<Map<String, Object?>?> hasOne(String childTable,
+  Future<RelationshipModel> hasOne(String childTable,
       {String? foreignKey, String? parentKey}) async {
-    String? q;
-    try {
-      Database _db = await eloquent.getDatabase;
-      String? _foreignKey;
-      String? _parentKey;
-      String parentTableName = eloquent.tableName;
-      List<String> columNames = await eloquent.getColumnNames(childTable);
-      if (foreignKey == null) {
-        List possibleColumnNames = columNames
-            .where((element) => element.contains(
-                parentTableName.substring(0, parentTableName.length - 2)))
+    String? _foreignKey;
+    String? _parentKey;
+    String parentTable = eloquent.tableName;
+    List<Map<String, dynamic>> foreignKeys =
+        (await eloquent.getForeignKeys(table: childTable))
+            .where((element) => element['table'] == parentTable)
             .toList();
-        if (possibleColumnNames.isEmpty) {
-          throw Exception(
-              'foreignKey not found. Please specify custom foreignKey arg');
-        }
-        _foreignKey = possibleColumnNames.first;
-      } else {
-        if (!columNames.contains(foreignKey)) {
-          throw Exception('foreign Key not found');
-        }
-        _foreignKey = foreignKey;
-      }
-
-      if (!_foreignKey!.contains('_')) {
-        throw Exception('Foreign Key must have underscore e.g. car_id');
-      }
-
-      if (parentKey == null) {
-        String parentColumn = _foreignKey.split('_')[1];
-        List<String> columNames =
-            await eloquent.getColumnNames(parentTableName);
-        if (!columNames.contains(parentColumn)) {
-          throw Exception('parent key not found in parent table');
-        }
-        _parentKey = parentColumn;
-      } else {
-        _parentKey = parentKey;
-      }
-      q = 'Select child.* from $childTable child, $parentTableName parent WHERE child.$_foreignKey = parent.$_parentKey AND parent.${eloquent.getPrimaryColumn} = "$primaryValue"';
-      q += ' LIMIT 1';
-
-      var results = await _db.rawQuery(q);
-      if (results.isNotEmpty) {
-        return results.first;
-      }
-      return null;
-    } catch (e) {
-      throw Exception('Generated query: "$q" \n' + e.toString());
+    if (foreignKeys.isEmpty) {
+      throw Exception(
+          'There is no foreign key related to $parentTable in $tableName');
     }
+
+    Map<String, dynamic>? foreignInfo;
+    if (foreignKeys.length > 1 && foreignKey == null) {
+      throw Exception(
+          'Please specify foreign key since there are more than one foreign keys in $tableName');
+    }
+    if (foreignKey == null) {
+      foreignInfo = foreignKeys.first;
+      _foreignKey = foreignInfo['from'];
+    } else {
+      if (foreignKeys
+          .where((element) => element['from'] == foreignKey)
+          .isEmpty) {
+        throw Exception('foreign Key not found');
+      }
+      foreignInfo = foreignKeys.firstWhere(
+          (element) => element['from'] == foreignKey,
+          orElse: () => {});
+      _foreignKey = foreignKey;
+    }
+
+    if (parentKey == null) {
+      _parentKey = foreignInfo['to'];
+    } else {
+      List<String> columNames =
+          await eloquent.getColumnNames(table: parentTable);
+      if (!columNames.contains(parentKey)) {
+        throw Exception('parent key not found in parent table');
+      }
+      _parentKey = parentKey;
+    }
+
+    finalForeignKey = _foreignKey;
+    finalParentKey = _parentKey;
+
+    query =
+        '$childTable table1, $parentTable table2 WHERE table1.$_foreignKey = table2.$_parentKey AND table2.${eloquent.getPrimaryColumn} = "$primaryValue"';
+    take(1);
+    return this;
   }
 }

@@ -4,7 +4,28 @@ import 'package:wazeloquent/src/models/model.dart';
 import 'package:wazeloquent/src/support/generator.dart';
 
 abstract class RelationshipModel extends Model with Generator {
-  bool isRelationship = false;
+  String? query;
+  String? pivotTable;
+  String? finalForeignKey;
+  String? finalParentKey;
+
+  @override
+  resetAll() {
+    pivotTable = null;
+    finalForeignKey = null;
+    finalParentKey = null;
+    query = null;
+    super.resetAll();
+  }
+
+  @override
+  List<String> get columns => eloquent.columns;
+
+  @override
+  String get getPrimaryColumn => eloquent.getPrimaryColumn;
+
+  @override
+  String get tableName => eloquent.tableName;
 
   /// Return all rows from table.
   /// ```dart
@@ -18,15 +39,16 @@ abstract class RelationshipModel extends Model with Generator {
   /// ```
   @override
   Future<List<Map<String, Object?>>> all() async {
-    String query = 'SELECT';
+    if (query == null) {
+      throw Exception('cannot query without relationship');
+    }
+    String q = 'SELECT table1.* from ' + query!;
     try {
       Database _db = await eloquent.getDatabase;
       resetAll();
-      query += generateQuery('*');
-
-      return await _db.rawQuery(query);
+      return await _db.rawQuery(q);
     } catch (e) {
-      throw Exception('Generated query: "$query" \n' + e.toString());
+      throw Exception('Generated query: "$q" \n' + e.toString());
     }
   }
 
@@ -37,9 +59,13 @@ abstract class RelationshipModel extends Model with Generator {
   /// ```
   @override
   Future<List<Map<String, Object?>>?> get() async {
-    String q = 'Select';
+    if (query == null) {
+      throw Exception('cannot query without relationship');
+    }
+    String? selectedColumns = getSelectedColumns(table: 'table1');
+    String q = 'SELECT ${selectedColumns ?? 'table1.*'} from ' + query!;
     try {
-      q += generateQuery(getSelectedColumns() ?? '*');
+      q = generateQuery(q, table: 'table1');
 
       resetAll();
 
@@ -58,10 +84,24 @@ abstract class RelationshipModel extends Model with Generator {
   ///
   /// ```
   @override
-  Future<int> create({required Map<String, Object?> values}) async {
-    resetAll();
+  Future<int> create(Map<String, Object?> values) async {
+    if (values.isEmpty) {
+      throw Exception('Empty values');
+    }
+    if (query == null) {
+      throw Exception('cannot query without relationship');
+    }
+    String table = query!.split(' ')[0];
+    if (!(await eloquent.getColumnNames(table: table))
+        .contains(finalForeignKey)) {
+      throw Exception('cannot create parent data from child.');
+    }
     final db = await eloquent.getDatabase;
-    return await db.insert(tableName, values);
+    if (!values.keys.contains(finalForeignKey)) {
+      values[finalForeignKey!] = primaryValue;
+    }
+    resetAll();
+    return await db.insert(table, values);
   }
 
   /// Update rows and return number of changes.
@@ -78,11 +118,21 @@ abstract class RelationshipModel extends Model with Generator {
   /// ```
   @override
   Future<int> update(Map<String, Object?> values) async {
-    if (!isRelationship) {
+    if (values.isEmpty) {
+      throw Exception('Empty values');
+    }
+    if (query == null) {
       super.update(values);
     }
-    String q = 'Update $tableName';
+    String table = query!.split(' ')[0];
+    String q = 'SELECT table1.id FROM ' + query!;
     try {
+      resetDistinct();
+      resetGroupBy();
+      resetSelectedColunns();
+      resetSort();
+      String selectedQuery = generateQuery(q);
+      q = 'UPDATE $table ';
       for (var val in values.entries) {
         if (columns.contains(val.key)) {
           q += ' SET ${val.key} = "${val.value}"';
@@ -91,14 +141,9 @@ abstract class RelationshipModel extends Model with Generator {
           }
         }
       }
-
-      resetDistinct();
-      resetGroupBy();
-      resetSelectedColunns();
-      resetSort();
-      q = generateQuery(q);
-      resetAll();
+      q = q + ' WHERE id IN ($selectedQuery)';
       final db = await eloquent.getDatabase;
+      resetAll();
       return await db.rawUpdate(q);
     } catch (e) {
       throw Exception('Generated query: "$q" \n' + e.toString());
@@ -119,7 +164,10 @@ abstract class RelationshipModel extends Model with Generator {
   /// ```
   @override
   Future<int> delete() async {
-    String query = 'Delete';
+    if (query == null) {
+      return super.delete();
+    }
+    String q = 'SELECT table1.id FROM ' + query!;
     try {
       resetSelectedColunns();
       resetDistinct();
@@ -128,14 +176,15 @@ abstract class RelationshipModel extends Model with Generator {
       resetLimit();
       resetLimit();
       resetOffset();
-      query += generateQuery('');
-
+      q = generateQuery(q);
+      String table = query!.split(' ')[0];
+      q = 'DELETE from $table WHERE id IN ($q)';
       resetAll();
 
       Database _db = await eloquent.getDatabase;
-      return await _db.rawDelete(query);
+      return await _db.rawDelete(q);
     } catch (e) {
-      throw Exception('Generated query: "$query" \n' + e.toString());
+      throw Exception('Generated query: "$q" \n' + e.toString());
     }
   }
 
@@ -156,30 +205,35 @@ abstract class RelationshipModel extends Model with Generator {
   @override
   Future<List<Map<String, Object?>>> search(String keyword,
       {List<String>? searchableColumns}) async {
+    if (query == null) {
+      throw Exception('cannot query without relationship');
+    }
     String _key = '%$keyword%';
-    String q = 'Select';
+    String? selectedColumns = getSelectedColumns(table: 'table1');
+    String table = query!.split(' ')[0];
+    String q =
+        'SELECT ${selectedColumns ?? 'table1.*'} from ' + query! + ' AND ';
     try {
       List<String>? _usedColumns;
       var _wheres = getWhereColumns();
       if (_wheres.isNotEmpty) {
         _usedColumns = _wheres.map((e) => e.columnName).toList();
-        _wheres = [];
       }
       if (searchableColumns != null && searchableColumns.isNotEmpty) {
         for (var column in searchableColumns) {
           where(column, _key, operator: Operator.like, conjuncation: 'or');
         }
       } else {
-        for (var column in columns) {
+        for (var column in await eloquent.getColumnNames(table: table)) {
           if (_usedColumns != null && _usedColumns.contains(column)) {
             continue;
           }
           where(column, _key, operator: Operator.like, conjuncation: 'or');
         }
       }
-      q += generateQuery(getSelectedColumns() ?? '*');
-      resetAll();
+      q = generateQuery(q, table: 'table1');
       Database _db = await eloquent.getDatabase;
+      resetAll();
       return await _db.rawQuery(q);
     } catch (e) {
       throw Exception('Generated query: "$q" \n' + e.toString());

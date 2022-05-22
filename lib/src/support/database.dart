@@ -213,11 +213,7 @@ class DB {
 
     final path = join(dbPath! + fileName);
     if (!await Directory(dirname(path)).exists()) {
-      try {
-        await Directory(dirname(path)).create(recursive: true);
-      } catch (e) {
-        // print(e);
-      }
+      await Directory(dirname(path)).create(recursive: true);
     }
     return await openDatabase(path, version: _version,
         onCreate: (Database db, int version) async {

@@ -2,9 +2,11 @@ import 'dart:developer';
 import 'dart:math';
 
 import 'package:example/eloquents/car.dart';
+import 'package:example/eloquents/country.dart';
 import 'package:example/eloquents/user.dart';
 import 'package:example/models/user.dart';
 import 'package:example/pages/basic.dart';
+import 'package:example/pages/many_to_many.dart';
 import 'package:example/pages/one_to_many.dart';
 import 'package:example/pages/one_to_one.dart';
 import 'package:flutter/material.dart';
@@ -23,8 +25,10 @@ void main() async {
 
   db.setDbVersion(1); // set db version
   db.setFileName('waz.db'); // set file
-  db.onCreate([UserEloquent.onCreate, CarEloquent.onCreate]);
-  db.onOpen([UserEloquent.onOpen, CarEloquent.onOpen]);
+  db.onCreate(
+      [UserEloquent.onCreate, CarEloquent.onCreate, CountryEloquent.onCreate]);
+  db.onOpen([UserEloquent.onOpen, CarEloquent.onOpen, CountryEloquent.onOpen]);
+
   db.onConfigure([
     Future(() {
       return (Database db) async {
@@ -63,7 +67,8 @@ class MyHomePage extends StatefulWidget {
 List<Widget> pages = [
   const Basic(),
   const OneToOneWidget(),
-  const OneToManyWidget()
+  const OneToManyWidget(),
+  const ManyToManyWidget(),
 ];
 
 class _MyHomePageState extends State<MyHomePage> {
@@ -86,6 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Tab(child: Text('One To One')),
               Tab(child: Text('One To Many')),
+              Tab(child: Text('Many To Many')),
             ]),
           ),
           body: TabBarView(children: pages)),

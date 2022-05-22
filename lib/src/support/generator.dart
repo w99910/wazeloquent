@@ -21,8 +21,6 @@ abstract class Generator {
 
   int? _limit;
 
-  String? query;
-
   List<Function?> _withs = [];
 
   List<String>? _selectedColumns;
@@ -33,7 +31,7 @@ abstract class Generator {
 
   Future<List<Map<String, Object?>>> all();
 
-  Future<int> create({required Map<String, Object?> values});
+  Future<int> create(Map<String, Object?> values);
 
   Future<int> update(Map<String, Object?> values);
 
@@ -41,6 +39,22 @@ abstract class Generator {
 
   Future<List<Map<String, Object?>>> search(String keyword,
       {List<String>? searchableColumns});
+
+  Future<int> updateOrCreate(
+      {required Map<String, Object?> check,
+      required Map<String, Object?> inserts}) async {
+    throw UnimplementedError();
+  }
+
+  Future<int?> createIfNotExists(
+      {required Map<String, Object?> check,
+      required Map<String, Object?> create}) async {
+    throw UnimplementedError();
+  }
+
+  Future<Map<String, Object?>?> find(primaryKeyValue) async {
+    throw UnimplementedError();
+  }
 
   resetAll() {
     _orderBy = null;
@@ -95,28 +109,38 @@ abstract class Generator {
     return _wheres;
   }
 
-  String? getSelectedColumns() {
-    return _toString(_selectedColumns);
+  String? getSelectedColumns({String? table}) {
+    if (table != null) {
+      table = table + '.';
+    }
+    return _toString(_selectedColumns, prefix: table);
   }
 
-  String? _toString(List<String>? values) {
+  List<String>? getSelectedColumnAsArray() {
+    return _selectedColumns;
+  }
+
+  String? _toString(List<String>? values, {String? prefix}) {
     String? val;
     if (values != null && values.isNotEmpty) {
-      val = '';
+      String temp = '';
       for (var col in _selectedColumns!.asMap().entries) {
-        val = val! + col.value;
+        temp += prefix != null ? prefix + col.value : col.value;
         if (col.key != _selectedColumns!.length - 1) {
-          val = val + ',';
+          temp += ',';
         }
       }
+      val = temp;
     }
     return val;
   }
 
-  String _getWhereQuery(String q) {
+  String _getWhereQuery(String q, {String? table}) {
     if (_wheres.isNotEmpty) {
-      q += ' WHERE';
-      String table = tableName;
+      if (!q.contains('WHERE')) {
+        q += ' WHERE';
+      }
+      table ??= tableName;
       var whereAnd =
           _wheres.where((element) => element.conjunction == 'and').toList();
       var whereOr =
@@ -191,10 +215,10 @@ abstract class Generator {
     return q;
   }
 
-  String generateQuery(String prefix) {
+  String generateQuery(String prefix, {String? table}) {
     String q = _distinct ? ' DISTINCT' : '';
     q = prefix;
-    q = _getWhereQuery(q);
+    q = _getWhereQuery(q, table: table);
     q = _getOrderBy(q);
     q = _getGroupBy(q);
     q = _getLimitOffset(q);
@@ -218,9 +242,6 @@ abstract class Generator {
   ///```
   Generator where(String columnName, value,
       {Operator operator = Operator.equal, String? conjuncation}) {
-    if (!columns.contains(columnName)) {
-      throw Exception('Column "$columnName" not found');
-    }
     String? _operator;
     switch (operator) {
       case Operator.equal:

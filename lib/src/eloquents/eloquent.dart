@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:wazeloquent/src/enums/operator.dart';
 import 'package:wazeloquent/src/support/generator.dart';
 import 'package:wazeloquent/wazeloquent.dart';
@@ -5,32 +7,38 @@ import 'package:wazeloquent/wazeloquent.dart';
 abstract class Eloquent with Generator {
   Future<Database> get getDatabase async => DB.instance.getDB();
 
-  Future<List<String>> getColumnNames(String table) async {
+  /// Get column names
+  ///
+  /// ```dart
+  /// var eloquent = UserEloquent();
+  /// // get column names of 'users' table;
+  /// eloquent.getColumnNames();
+  ///
+  /// // You can specify table name.
+  /// eloquent.getColumnNames('cars'); // get column names of 'cars' table;
+  /// ```
+  Future<List<String>> getColumnNames({String? table}) async {
     Database _db = await getDatabase;
-    var data = await _db.rawQuery("PRAGMA table_info(" + table + ")", null);
+    var data = await _db.rawQuery(
+        "PRAGMA table_info(" + (table ?? tableName) + ")", null);
     return data.map((e) => e['name'].toString()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> getForeignKeys(String table) async {
+  /// Get column names
+  ///
+  /// ```dart
+  /// var eloquent = UserEloquent();
+  /// // get foreign keys info of 'users' table;
+  /// eloquent.getForeignKeys();
+  ///
+  /// // You can specify table name.
+  /// eloquent.getForeignKeys('cars'); // get foreign keys info of 'cars' table;
+  /// ```
+  Future<List<Map<String, dynamic>>> getForeignKeys({String? table}) async {
     Database _db = await getDatabase;
-    var data =
-        await _db.rawQuery("PRAGMA foreign_key_list(" + table + ")", null);
-    List<Map<String, dynamic>> results = [];
-    if (data.isNotEmpty) {
-      for (var row in data) {
-        Map<String, dynamic> result = {};
-        result['id'] = row[0];
-        result['seq'] = row[1];
-        result['table'] = row[2];
-        result['from'] = row[3];
-        result['to'] = row[4];
-        result['onUpdate'] = row[5];
-        result['onDelete'] = row[6];
-        result['match'] = row[7];
-        results.add(result);
-      }
-    }
-    return results;
+    var data = await _db.rawQuery(
+        "PRAGMA foreign_key_list(" + (table ?? tableName) + ")", null);
+    return data;
   }
 
   /// Return all rows from table.
@@ -45,11 +53,11 @@ abstract class Eloquent with Generator {
   /// ```
   @override
   Future<List<Map<String, Object?>>> all() async {
-    String query = 'SELECT';
+    String query = 'SELECT ';
     try {
       Database _db = await getDatabase;
       resetAll();
-      query += generateQuery('*');
+      query += generateQuery('* from $tableName');
 
       return await _db.rawQuery(query);
     } catch (e) {
@@ -66,7 +74,8 @@ abstract class Eloquent with Generator {
   Future<List<Map<String, Object?>>?> get() async {
     String q = 'Select';
     try {
-      q += generateQuery(getSelectedColumns() ?? '*');
+      String selectedColumns = getSelectedColumns() ?? '*';
+      q += generateQuery(' $selectedColumns from $tableName');
 
       resetAll();
 
@@ -85,6 +94,7 @@ abstract class Eloquent with Generator {
   /// // get user where primary key (id) is 1.
   /// userEloquent.find(1);
   /// ```
+  @override
   Future<Map<String, Object?>?> find(primaryKeyValue) async {
     Database _db = await getDatabase;
     var results = await _db.query(
@@ -124,7 +134,6 @@ abstract class Eloquent with Generator {
       var _wheres = getWhereColumns();
       if (_wheres.isNotEmpty) {
         _usedColumns = _wheres.map((e) => e.columnName).toList();
-        _wheres = [];
       }
       if (searchableColumns != null && searchableColumns.isNotEmpty) {
         for (var column in searchableColumns) {
@@ -155,7 +164,7 @@ abstract class Eloquent with Generator {
   ///
   /// ```
   @override
-  Future<int> create({required Map<String, Object?> values}) async {
+  Future<int> create(Map<String, Object?> values) async {
     resetAll();
     final db = await getDatabase;
     return await db.insert(tableName, values);
@@ -182,6 +191,7 @@ abstract class Eloquent with Generator {
   /// userEloquent.createIfNotExists(check:{'name':'john'},create:{'password':'pass'});
   ///
   /// ```
+  @override
   Future<int?> createIfNotExists(
       {required Map<String, Object?> check,
       required Map<String, Object?> create}) async {
@@ -203,6 +213,7 @@ abstract class Eloquent with Generator {
   /// // if row where name is john exists, update 'password' column. If not, create row where name is john and password is 'pass'.
   /// userEloquent.updateOrCreate(check:{'name':'john'},inserts:{'password':'pass'});
   ///```
+  @override
   Future<int> updateOrCreate(
       {required Map<String, Object?> check,
       required Map<String, Object?> inserts}) async {
@@ -287,7 +298,7 @@ abstract class Eloquent with Generator {
       resetLimit();
       resetLimit();
       resetOffset();
-      query += generateQuery('');
+      query += generateQuery(' from $tableName');
 
       resetAll();
 
