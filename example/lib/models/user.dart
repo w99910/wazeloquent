@@ -1,10 +1,8 @@
-import 'dart:developer';
-
 import 'package:example/eloquents/user.dart';
 import 'package:example/models/car.dart';
 import 'package:wazeloquent/wazeloquent.dart';
 
-class User extends RelationshipModel with OneToOne, OneToMany {
+class User extends RelationshipModel with OneToOne, OneToMany, ManyToMany {
   int id;
   String name;
   String password;

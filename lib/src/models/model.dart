@@ -3,7 +3,7 @@ import 'package:wazeloquent/wazeloquent.dart';
 abstract class Model {
   Eloquent get eloquent;
 
-  String get primaryValue;
+  dynamic get primaryValue;
 
   Map<String, Object?> get toJson;
 

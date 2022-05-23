@@ -2,7 +2,8 @@ import 'dart:developer';
 import 'dart:math';
 
 import 'package:example/eloquents/car.dart';
-import 'package:example/eloquents/country.dart';
+import 'package:example/eloquents/class.dart';
+import 'package:example/eloquents/student.dart';
 import 'package:example/eloquents/user.dart';
 import 'package:example/models/user.dart';
 import 'package:example/pages/basic.dart';
@@ -10,7 +11,6 @@ import 'package:example/pages/many_to_many.dart';
 import 'package:example/pages/one_to_many.dart';
 import 'package:example/pages/one_to_one.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:wazeloquent/wazeloquent.dart';
 
 void main() async {
@@ -24,10 +24,19 @@ void main() async {
   // db.setFilePath(dir, shouldForceCreatePath: true);
 
   db.setDbVersion(1); // set db version
-  db.setFileName('waz.db'); // set file
-  db.onCreate(
-      [UserEloquent.onCreate, CarEloquent.onCreate, CountryEloquent.onCreate]);
-  db.onOpen([UserEloquent.onOpen, CarEloquent.onOpen, CountryEloquent.onOpen]);
+  db.setFileName('test-0.1.2.db'); // set file
+  db.onCreate([
+    UserEloquent.onCreate,
+    CarEloquent.onCreate,
+    StudentEloquent.onCreate,
+    ClassEloquent.onCreate
+  ]);
+  db.onOpen([
+    UserEloquent.onOpen,
+    CarEloquent.onOpen,
+    StudentEloquent.onOpen,
+    ClassEloquent.onOpen
+  ]);
 
   db.onConfigure([
     Future(() {

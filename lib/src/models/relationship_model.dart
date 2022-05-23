@@ -52,7 +52,7 @@ abstract class RelationshipModel extends Model with Generator {
     }
   }
 
-  /// Final execution of query is performed by issuing this method.
+  /// Get the rows.
   /// ```
   /// var userEloquent = UserEloquent();
   /// userEloquent.get();
@@ -66,7 +66,6 @@ abstract class RelationshipModel extends Model with Generator {
     String q = 'SELECT ${selectedColumns ?? 'table1.*'} from ' + query!;
     try {
       q = generateQuery(q, table: 'table1');
-
       resetAll();
 
       Database _db = await eloquent.getDatabase;

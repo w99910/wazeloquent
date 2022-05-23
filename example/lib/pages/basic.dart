@@ -170,8 +170,7 @@ class _BasicState extends State<Basic> {
                 ElevatedButton(
                     onPressed: loadUsers, child: const Text('Reload')),
                 ElevatedButton(onPressed: skipUsers, child: const Text('Skip')),
-                ElevatedButton(
-                    onPressed: skipUsers, child: const Text('Take 2'))
+                ElevatedButton(onPressed: take, child: const Text('Take 2'))
               ],
             ),
           )

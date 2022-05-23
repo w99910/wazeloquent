@@ -1,6 +1,6 @@
 import 'package:wazeloquent/wazeloquent.dart';
 
-class CountryEloquent extends Eloquent {
+class ClassEloquent extends Eloquent {
   @override
   List<String> get columns => ['id', 'name', 'createdAt', 'updatedAt'];
 
@@ -8,29 +8,29 @@ class CountryEloquent extends Eloquent {
   String get getPrimaryColumn => 'id';
 
   @override
-  String get tableName => 'countries';
+  String get tableName => 'classes';
 
   static Future<Function(Database)> onOpen = Future(() {
     return (Database db) async {
-      await DB.createTable(db, tableName: 'countries', columns: {
+      await DB.createTable(db, tableName: 'classes', columns: {
         'id': [ColumnType.idType],
         'name': [ColumnType.stringType, ColumnType.notNull],
         'createdAt': [ColumnType.stringType, ColumnType.notNull],
         'updatedAt': [ColumnType.stringType, ColumnType.notNull],
       });
 
-      await DB.createTable(db, tableName: 'country_user', columns: {
+      await DB.createTable(db, tableName: 'class_student', columns: {
         'id': [ColumnType.idType],
-        'countryId': DB.foreign(
-            foreignKey: 'countryId',
+        'classId': DB.foreign(
+            foreignKey: 'classId',
             parentKey: 'id',
-            parentTable: 'countries',
+            parentTable: 'classes',
             onDelete: DBActions.cascade,
             type: ColumnType.integerType),
-        'userId': DB.foreign(
-            foreignKey: 'userId',
+        'studentId': DB.foreign(
+            foreignKey: 'studentId',
             parentKey: 'id',
-            parentTable: 'users',
+            parentTable: 'students',
             onDelete: DBActions.cascade,
             type: ColumnType.integerType),
         'createdAt': [ColumnType.stringType, ColumnType.notNull],
@@ -41,25 +41,25 @@ class CountryEloquent extends Eloquent {
 
   static Future<Function(Database, int)> onCreate = Future(() {
     return (Database db, int version) async {
-      await DB.createTable(db, tableName: 'countries', columns: {
+      await DB.createTable(db, tableName: 'classes', columns: {
         'id': [ColumnType.idType],
         'name': [ColumnType.stringType, ColumnType.notNull],
         'createdAt': [ColumnType.stringType, ColumnType.notNull],
         'updatedAt': [ColumnType.stringType, ColumnType.notNull],
       });
 
-      await DB.createTable(db, tableName: 'country_user', columns: {
+      await DB.createTable(db, tableName: 'class_student', columns: {
         'id': [ColumnType.idType],
-        'countryId': DB.foreign(
-            foreignKey: 'countryId',
+        'classId': DB.foreign(
+            foreignKey: 'classId',
             parentKey: 'id',
-            parentTable: 'countries',
+            parentTable: 'classes',
             onDelete: DBActions.cascade,
             type: ColumnType.integerType),
-        'userId': DB.foreign(
-            foreignKey: 'userId',
+        'studentId': DB.foreign(
+            foreignKey: 'studentId',
             parentKey: 'id',
-            parentTable: 'users',
+            parentTable: 'students',
             onDelete: DBActions.cascade,
             type: ColumnType.integerType),
         'createdAt': [ColumnType.stringType, ColumnType.notNull],
