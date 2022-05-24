@@ -29,13 +29,15 @@ abstract class RelationshipModel extends Model with Generator {
 
   /// Return all rows from table.
   /// ```dart
-  /// var userEloquent = UserEloquent();
+  /// var user = User();
+  ///
+  /// var query = await user.cars();
   ///
   /// //similar to userEloquent.get() but no matter what options you specify, they will be ignored and all rows will be returned.
-  /// userEloquent.all();
+  /// await query.all();
   ///
   /// //orderBy, limit will be ignored
-  /// userEloquent.orderBy('name').limit(1).all();
+  /// await query.orderBy('name').limit(1).all();
   /// ```
   @override
   Future<List<Map<String, Object?>>> all() async {
@@ -54,8 +56,10 @@ abstract class RelationshipModel extends Model with Generator {
 
   /// Get the rows.
   /// ```
-  /// var userEloquent = UserEloquent();
-  /// userEloquent.get();
+  /// var user = User();
+  ///
+  /// var query = await user.cars();
+  /// await query.get();
   /// ```
   @override
   Future<List<Map<String, Object?>>?> get() async {
@@ -77,10 +81,10 @@ abstract class RelationshipModel extends Model with Generator {
 
   /// Create a new row.
   /// ```dart
-  /// var userEloquent = UserEloquent();
+  /// var user = User();
   ///
-  /// userEloquent.create({'name':'John','password':'pass'});
-  ///
+  /// var query = await user.cars();
+  /// await query.create({'name':'Car 1'});
   /// ```
   @override
   Future<int> create(Map<String, Object?> values) async {
@@ -106,13 +110,14 @@ abstract class RelationshipModel extends Model with Generator {
   /// Update rows and return number of changes.
 
   /// ```dart
-  /// var userEloquent = UserEloquent();
+  /// var user = User();
   ///
-  /// // update name of all rows to 'john'.
-  /// userEloquent.update({'name':'john'});
+  /// var query = await user.cars();
+  /// // update name of all rows to 'car1'.
+  /// await query.update({'name':'car1'});
   ///
   /// // update name of rows where id = 1 to 1.
-  /// userEloquent.where('id',1).update({'name':'john'});
+  /// await query.where('id',1).update({'name':'car1'});
   ///
   /// ```
   @override
@@ -152,13 +157,14 @@ abstract class RelationshipModel extends Model with Generator {
   ///   Delete rows from table and return number of changes.
   ///
   /// ```dart
-  /// var userEloquent = UserEloquent();
+  /// var user = User();
   ///
+  /// var query = await user.cars();
   /// // delete all rows from users
-  /// userEloquent.delete();
+  /// await query.delete();
   ///
   /// // delete rows where name has 'j' from users
-  /// userEloquent.where('name','%j%',operator:Operator.like).delete();
+  /// await query.where('name','%j%',operator:Operator.like).delete();
   ///
   /// ```
   @override
@@ -190,16 +196,17 @@ abstract class RelationshipModel extends Model with Generator {
   /// Search rows.
   ///
   /// ```dart
-  /// var userEloquent = UserEloquent();
+  /// var user = User();
   ///
+  /// var query = await user.cars();
   /// // get rows where any column has word 'j'.
-  /// userEloquent.search('j');
+  /// await query.search('j');
   ///
   /// // get rows where country has 'UK' and any other rows has 'j'.
-  /// userEloquent.where('country','UK').search('j');
+  /// await query.where('country','UK').search('j');
   ///
   /// //specify searchable columns
-  /// userEloquent.search('j',searchableColumns:['name']);
+  /// await query.search('j',searchableColumns:['name']);
   /// ```
   @override
   Future<List<Map<String, Object?>>> search(String keyword,
@@ -210,8 +217,7 @@ abstract class RelationshipModel extends Model with Generator {
     String _key = '%$keyword%';
     String? selectedColumns = getSelectedColumns(table: 'table1');
     String table = query!.split(' ')[0];
-    String q =
-        'SELECT ${selectedColumns ?? 'table1.*'} from ' + query! + ' AND ';
+    String q = 'SELECT ${selectedColumns ?? 'table1.*'} from ' + query!;
     try {
       List<String>? _usedColumns;
       var _wheres = getWhereColumns();

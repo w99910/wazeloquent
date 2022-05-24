@@ -9,3 +9,5 @@ export 'src/models/relationship_model.dart';
 export 'src/relationships/one_to_one.dart';
 export 'src/relationships/one_to_many.dart';
 export 'src/relationships/many_to_many.dart';
+export 'src/enums/operator.dart';
+export 'src/enums/sort.dart';

@@ -334,6 +334,7 @@ class _ManyToManyWidgetState extends State<ManyToManyWidget> {
 
   Widget buildStudentLists() {
     return ListView.separated(
+        controller: ScrollController(),
         itemBuilder: (context, index) {
           return ListTile(
             leading: Checkbox(
@@ -361,6 +362,7 @@ class _ManyToManyWidgetState extends State<ManyToManyWidget> {
 
   Widget buildClassLists() {
     return ListView.separated(
+        controller: ScrollController(),
         itemBuilder: (context, index) {
           return ListTile(
             leading: Checkbox(

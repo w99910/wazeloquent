@@ -139,6 +139,8 @@ abstract class Generator {
     if (_wheres.isNotEmpty) {
       if (!q.contains('WHERE')) {
         q += ' WHERE';
+      } else {
+        q += ' AND';
       }
       table ??= tableName;
       var whereAnd =

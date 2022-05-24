@@ -5,10 +5,12 @@ mixin ManyToMany on RelationshipModel {
   String? _relatedForeignKey, _relatedParentKey, _relatedTable;
   String? _pivotTable;
 
+  /// Define many-to-many relationship.
+  /// Pivot table name should be in alphabetical order.
+  /// For example, `class_student` or `role_user`.
+  /// If not in alphabetical order, you must specify pivot table.
   Future<ManyToMany> belongsToMany(String relatedTable,
-      {String? pivotTable,
-      String? foreignKeyOfParent,
-      String? foreignKeyOfChild}) async {
+      {String? pivotTable}) async {
     var database = await eloquent.getDatabase;
     var tables = await database.rawQuery(
         'SELECT name FROM sqlite_schema WHERE type = "table" AND name NOT LIKE "sqlite_%"');
@@ -37,6 +39,7 @@ mixin ManyToMany on RelationshipModel {
     _pivotTable = pivotTable;
 
     var foreignKeys = await eloquent.getForeignKeys(table: pivotTable);
+
     var initial = foreignKeys.where((element) => element['table'] == tableName);
     if (initial.isEmpty) {
       throw Exception(
@@ -66,6 +69,14 @@ mixin ManyToMany on RelationshipModel {
     return this;
   }
 
+  /// Create a record in pivot table and return the id of last inserted row.
+  /// ```
+  /// var classroom = Class();
+  ///var student = Student();
+  ///var query = await classroom.getStudents();
+  ///
+  ///await query.attach(student);
+  ///```
   Future<int> attach(RelationshipModel model,
       {Map<String, Object?>? extras}) async {
     if (query == null) {
@@ -89,7 +100,13 @@ mixin ManyToMany on RelationshipModel {
     return await database.insert(_pivotTable!, values);
   }
 
-  /// Return a list of added indexes.
+  /// Create records in pivot table and return a list of added indexes.
+  /// ```
+  /// var classroom = Class();
+  /// var query = await classroom.getStudents();
+  ///
+  ///await query.attachMany([Student(),Student()]);
+  ///```
   Future<List<int>> attachMany(List<RelationshipModel> models,
       {Map<String, Object?>? extras}) async {
     if (query == null) {
@@ -122,6 +139,17 @@ mixin ManyToMany on RelationshipModel {
     return indexes;
   }
 
+  /// Delete related row or rows in pivot table and return the number of changes made.
+  /// ```
+  /// var student = Student();
+  /// var classQuery = await student.getClasses();
+  ///
+  ///// Delete single row in pivot table
+  /// await classQuery.detach(model:Class());
+  ///
+  ///// delete all related rows in pivot table
+  /// await classQuery.detach();
+  /// ```
   Future<int> detach({RelationshipModel? model}) async {
     if (query == null) {
       throw Exception('cannot query without relationship');

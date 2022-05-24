@@ -126,15 +126,17 @@ class _OneToOneWidgetState extends State<OneToOneWidget> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return SingleChildScrollView(
+      controller: ScrollController(),
       child: SizedBox(
         width: size.width * 0.95,
         height: size.height,
         child: Column(children: [
           const SizedBox(height: 20),
           SizedBox(
-              height: size.height * 0.45,
+              height: size.height * 0.7,
               width: size.width * 0.7,
               child: ListView.builder(
+                  controller: ScrollController(),
                   itemCount: cars.length,
                   itemBuilder: (_, int index) {
                     Car car = cars[index];
@@ -145,7 +147,6 @@ class _OneToOneWidgetState extends State<OneToOneWidget> {
                     );
                   })),
           SizedBox(
-            height: size.height * 0.4,
             width: size.width * 0.7,
             child: Wrap(
               spacing: 8,

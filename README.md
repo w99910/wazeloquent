@@ -498,6 +498,6 @@ Please consider opening an issue in [issues tab](https://github.com/w99910/wazel
 
 > Check example [here](https://github.com/w99910/wazeloquent/tree/master/example)
 
-This package is develped bc of my future flutter projects and it has only small features for now. I am planning to implement `relationship` features in future.
+This package is developed to help developers' lives better and save time.
 <br>
 I would be really happy if this package helps you. Cheers 🎉🎉

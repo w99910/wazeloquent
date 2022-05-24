@@ -6,6 +6,7 @@ import 'package:example/eloquents/user.dart';
 import 'package:example/models/car.dart';
 import 'package:example/models/user.dart';
 import 'package:flutter/material.dart';
+import 'package:wazeloquent/wazeloquent.dart';
 
 class OneToManyWidget extends StatefulWidget {
   const OneToManyWidget({Key? key}) : super(key: key);
@@ -95,10 +96,23 @@ class _OneToManyWidgetState extends State<OneToManyWidget> {
   }
 
   filterCars() async {
-    User user = users[Random().nextInt(users.length)];
+    int index = Random().nextInt(users.length);
+    User user = users[index];
     showSnack(
       'Filtering for cars which ${user.name} owns ... ',
     );
+    var query = await user.getCars();
+    var data =
+        await query.where('name', '%Ford%', operator: Operator.like).get();
+    if (data != null && data.isNotEmpty) {
+      List<Car> _cars = [];
+      for (var car in data) {
+        _cars.add(Car.fromDB(car));
+      }
+      setState(() {
+        users[index].cars = _cars;
+      });
+    }
   }
 
   delete() async {
@@ -163,13 +177,14 @@ class _OneToManyWidgetState extends State<OneToManyWidget> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return SingleChildScrollView(
+      controller: ScrollController(),
       child: SizedBox(
         width: size.width * 0.95,
         height: size.height,
         child: Column(children: [
           const SizedBox(height: 20),
           SizedBox(
-              height: size.height * 0.6,
+              height: size.height * 0.7,
               width: size.width * 0.7,
               child: ListView.builder(
                   itemCount: users.length,
@@ -200,7 +215,6 @@ class _OneToManyWidgetState extends State<OneToManyWidget> {
                     );
                   })),
           SizedBox(
-            height: size.height * 0.2,
             width: size.width * 0.7,
             child: Wrap(
               spacing: 8,

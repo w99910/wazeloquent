@@ -6,7 +6,7 @@ Supported relationship types are
 - [one-to-many](#one-to-many)
 - [many-to-many](#many-to-many)
 
-### Getting Started
+### Getting StartREADME.mded
 
 - Enable foreign key options in db.
 
@@ -28,34 +28,36 @@ class User extends RelationshipModel {}
 
 Then you can use not only methods supported by `Model` but also almost all methods which can be used in `Eloquent` such as:
 
-- [where](#where)
-- [whereIn](#whereIn)
-- [orderBy](#orderby)
-- [orderByDesc](#orderbyDesc)
-- [groupBy](#groupBy)
-- [groupByDesc](#groupByDesc)
-- [latest](#latest)
-- [take](#take)
-- [skip](#skip)
-- [distinct](#distinct)
-- [all](#all)
-- [get](#get)
-- [select](#select)
-- [search](#search)
-- [create](#create)
-- [update](#update)
-- [delete](#delete)
+- [where](README.md#where)
+- [whereIn](README.md#whereIn)
+- [orderBy](README.md#orderby)
+- [orderByDesc](README.md#orderbyDesc)
+- [groupBy](README.md#groupBy)
+- [groupByDesc](README.md#groupByDesc)
+- [latest](README.md#latest)
+- [take](README.md#take)
+- [skip](README.md#skip)
+- [distinct](README.md#distinct)
+- [all](README.md#all)
+- [get](README.md#get)
+- [select](README.md#select)
+- [search](README.md#search)
+- [create](README.md#create)
+- [update](README.md#update)
+- [delete](README.md#delete)
 
 Example:
 
 ```dart
  var user = User();
 
- user.cars().where('name','Honda').get();
+ var query = await user.cars();
 
- user.cars().search('hond');
-
- user.cars().orderByDesc().take(2).get();
+ query.where('name','Honda').get();
+ // Or
+ query.search('hond');
+ // Or
+ query.orderByDesc().take(2).get();
 
  // etc ....
 ```
@@ -65,6 +67,21 @@ Example:
 - ### Example Scenario
 
   For example, **a user** may have **a car** and **a car** belongs to **a user**.
+
+- ### Table Structure
+
+  E.g,
+
+  ```
+  users
+    id - integer
+    name - string
+
+  cars
+    id - integer
+    userId - integer
+    name - string
+  ```
 
 - ### Create foreign fields
 
@@ -228,6 +245,21 @@ Example:
 
   For example, **a user** may have **one or more cars** and **a car** belongs to **a user**.
 
+- ### Table Structure
+
+  E.g,
+
+  ```
+  users
+    id - integer
+    name - string
+
+  cars
+    id - integer
+    userId - integer
+    name - string
+  ```
+
 - ### Create foreign keys and extend `RelationshipModel`
 
   See [above](#create-foreign-fields).
@@ -284,7 +316,7 @@ Example:
   For car,
 
   ```dart
-  class Car extends RelationshipModel with OneToOne{
+  class Car extends RelationshipModel with OneToMany{
      factory Car.fromDB(Map<String, Object?> data) {
       return Car( ... );
     }
@@ -325,9 +357,9 @@ Example:
   await carQuery.get();
   ```
 
-- ### Creating record
+- ### Creating record or records
 
-  You can create child record from parent.
+  You can create child record or records from parent.
   Foreign key will automatically inject in creating record.
   E.g
 
@@ -342,13 +374,13 @@ Example:
 
   await carQuery.createMany([
     {
-    'name':'Penske PC-23',
-    'createdAt':DateTime.now(),
-    'updatedAt':DateTime.now()
+     'name':'Penske PC-23',
+     'createdAt':DateTime.now(),
+     'updatedAt':DateTime.now()
     },{
-    'name':'Buick Regal.',
-    'createdAt':DateTime.now(),
-    'updatedAt':DateTime.now()
+     'name':'Buick Regal.',
+     'createdAt':DateTime.now(),
+     'updatedAt':DateTime.now()
     }
   ]);
   ```
@@ -530,7 +562,7 @@ class Class extends RelationshipModel with OneToOne, OneToMany, ManyToMany {
   var student = Student();
   var classQuery = await student.getClasses();
 
-  // Delete single row in related table
+  // Delete single row in pivot table
   await classQuery.detach(model:Class());
 
   // delete all related rows in pivot table

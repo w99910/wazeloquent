@@ -124,6 +124,22 @@ mixin OneToMany on RelationshipModel {
     return this;
   }
 
+  /// Create child records and return a list of created row index.
+  /// ```
+  /// var user = User();
+  /// var query = await user.cars();
+  /// await query.createMany([
+  ///   {
+  ///    'name':'Penske PC-23',
+  ///    'createdAt':DateTime.now(),
+  ///    'updatedAt':DateTime.now()
+  ///   },{
+  ///    'name':'Buick Regal.',
+  ///    'createdAt':DateTime.now(),
+  ///    'updatedAt':DateTime.now()
+  ///   }
+  /// ]);
+  /// ```
   Future<List<int>> createMany(List<Map<String, Object?>> items) async {
     if (items.isEmpty) {
       throw Exception('Empty values');
