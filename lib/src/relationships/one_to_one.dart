@@ -79,7 +79,7 @@ mixin OneToOne on RelationshipModel {
   ///   }
   /// }
   /// ```
-  Future<RelationshipModel> hasOne(String childTable,
+  Future<OneToOne> hasOne(String childTable,
       {String? foreignKey, String? parentKey}) async {
     String? _foreignKey;
     String? _parentKey;

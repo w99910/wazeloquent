@@ -21,7 +21,7 @@ abstract class Generator {
 
   int? _limit;
 
-  List<Function?> _withs = [];
+  // List<Function?> _withs = [];
 
   List<String>? _selectedColumns;
 
@@ -65,7 +65,7 @@ abstract class Generator {
     resetOffset();
     resetLimit();
     resetSelectedColunns();
-    resetWiths();
+    // resetWiths();
     resetWheres();
   }
 
@@ -97,9 +97,9 @@ abstract class Generator {
     _selectedColumns = null;
   }
 
-  resetWiths() {
-    _withs = [];
-  }
+  // resetWiths() {
+  //   _withs = [];
+  // }
 
   resetWheres() {
     _wheres = [];
@@ -247,22 +247,27 @@ abstract class Generator {
       case Operator.equal:
         _operator = '=';
         break;
+
       case Operator.greaterThan:
         _operator = '>';
-
         break;
+
       case Operator.lessThan:
         _operator = '<';
-
         break;
+
       case Operator.notEqual:
         _operator = '!=';
-
         break;
+
       case Operator.like:
         _operator = 'LIKE';
-
         break;
+
+      case Operator.notLike:
+        _operator = 'NOT LIKE';
+        break;
+
       case Operator.inArray:
         if (value is! List) {
           throw Exception('Value must be List type.');

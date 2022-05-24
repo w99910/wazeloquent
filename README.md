@@ -1,4 +1,4 @@
-# WazEloquent
+# WazEloquent ( Laravel Eloquent Wrapper For Flutter )
 
 WazEloquent is designed to deal with database without writing custom querys on your own. This package is built on top of [Sqflite](https://github.com/tekartik/sqflite/tree/master/sqflite) package and inspired by [Laravel](https://laravel.com) eloquent.
 
@@ -7,7 +7,7 @@ WazEloquent is designed to deal with database without writing custom querys on y
 - You don't need to create your own database class. Just interact with table by using `DB`'s methods such as `onCreate`, `onOpen`, `onConfigure`, `onUpgrade`, `onDowngrade`.
 - Eazy to deal with table without writing query on your own.
 - Laravel Eloquent alike methods.
-- supported [relationships](#relationships)
+- Managing [Relationships](RS_README.md)
 
 ## Getting started
 
@@ -41,7 +41,7 @@ WazEloquent is designed to deal with database without writing custom querys on y
 
   void main(){
     var db = DB.instance;
-    db.setDbVersion(1); // optinal: set db version, default: 1
+    db.setDbVersion(1); // optional: set db version, default: 1
     // db.setFilePath(path); // optional: set db path
     db.setFileName('example.db'); // optional: set file name, default: sqflite.db
     db.onCreate([
@@ -93,6 +93,17 @@ WazEloquent is designed to deal with database without writing custom querys on y
     });
   }
   ```
+
+  Note that You can use sqflite table creating technique .i.e,
+
+  ```dart
+  await db.execute(
+      'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT, value INTEGER, num REAL)');
+  ```
+
+  Or You can use `DB.createTable()` method.
+
+  Feel free to use whatever you feel like XD
 
   Then use them like
 
@@ -429,15 +440,25 @@ Let your model extend `Model` class.
 ```dart
 class User extends Model{
   //configure required methods.
+   Eloquent get eloquent => UserEloquent();
+
+  dynamic get primaryValue => id; // primary value is the value of primary column.
+
+  Map<String, Object?> get toJson => {
+    'name': name,
+    'createdAt': createdAt?.toIso8601String(),
+    'updatedAt': updatedAt?.toIso8601String()
+  };
 }
 ```
 
 Avaiable methods are
 
-- [save](#save)
-- [delete](#deletee)
+- [save](#saving-model)
+- [update](#updating-model)
+- [delete](#deleting-model)
 
-- ### save
+- ### Saving Model
 
   Save the updated properties of your model.
 
@@ -447,9 +468,18 @@ Avaiable methods are
   await user.save(); // update the user's name to 'Doe' in table.
   ```
 
-- ### deletee
+- ### Updating Model
 
-  Delete the model.
+  Other than `save` method, you can update the attributes of model by using `update` method.
+
+  ```dart
+  User user = User({name:'John',password:'pass'});
+  await user.update({password:'newPassword'});
+  ```
+
+- ### Deleting Model
+
+  Delete the model in table.
 
   ```dart
   User user = User();
@@ -458,225 +488,11 @@ Avaiable methods are
 
 ## Relationships
 
-Supported relationship types are
+Please read documention about relationships [here](RS_README.md).
 
-- [one-to-one](#one-to-one)
-- [one-to-many](#one-to-many)
+## Bugs and issues
 
-> `Many-To-Many` relationship is planned to be implemented in near future.
-
-Before implementing for relationship, enable foreign key options in db.
-
-```dart
- db.onConfigure([
-    Future(() {
-      return (Database db) async {
-        await db.execute('PRAGMA foreign_keys = ON');
-      };
-    })
-  ]);
-```
-
-> For the time being, the package doesn't offer to create/update/delete records through relationships.
-> You can only read the related records.
-
-### One-To-One
-
-- ### Example Scenario
-
-  For example, **a user** may have **a car** and **a car** belongs to **a user**.
-
-- ### Create foreign fields
-
-  You can create foreign keys by using `DB.foreign()`.
-
-  > Rules: foreignKey must be in `parentTable_parentKey` format.
-
-  For example, let's create `cars` table.
-
-  ```dart
-   await DB.createTable(db, tableName: 'cars', columns: {
-        'id': [ColumnType.idType],
-        'user_id': DB.foreign(
-            foreignKey: 'user_id',
-            parentKey: 'id',
-            parentTable: 'users',
-            type: ColumnType.integerType,
-            onDelete: DBActions.cascade,
-            onUpdate: null),
-        'name': [ColumnType.stringType, ColumnType.notNull],
-        'createdAt': [ColumnType.stringType, ColumnType.notNull],
-        'updatedAt': [ColumnType.stringType, ColumnType.notNull],
-      });
-    };
-  ```
-
-- ### Create Model if not exists and extends `Model` class and add `OneToOne` mixin.
-
-  ```dart
-  import 'package:wazeloquent/wazeloquent.dart';
-
-  class User extends Model with OneToOne{}
-  ```
-
-- ### Determine which method to use in your model.
-
-  Since user has car and a car belongs to a user,
-  you can use `hasOne` in `User` class and `belongsTo` in `Car` class.
-
-  For user,
-
-  ```dart
-  class User extends Model with OneToOne{
-    factory User.fromDB(Map<String, Object?> user) {
-      return User(...);
-    }
-
-    Future<Car?> getCar() async {
-      var car = await hasOne('cars');
-      if (car != null) {
-        return Car.fromDB(car);
-      }
-      return null;
-    }
-
-    static Future<User> withCar(Map<String, Object?> data) async {
-      var user = User(
-          id: int.parse(data['id'].toString()),
-          name: data['name'].toString(),
-          password: data['password'].toString(),
-          createdAt: DateTime.parse(data['createdAt'].toString()),
-          updatedAt: DateTime.parse(data['updatedAt'].toString()));
-      user.car = await user.getCar();
-      return user;
-    }
-  }
-
-  //Then
-  var data = UserEloquent().find(1);
-  User userWithoutCar = User(data);
-  User userWithCar = User.withCar(data);
-
-  print(userWithoutCar.car); // null
-  print(userWithCar.car); // car model
-  ```
-
-  For car,
-
-  ```dart
-  class Car extends Model with OneToOne{
-     factory Car.fromDB(Map<String, Object?> data) {
-      return Car( ... );
-    }
-
-    static Future<Car> withUser(Map<String, Object?> data) async {
-      var car = Car(
-          id: int.parse(data['id'].toString()),
-          userId: data['user_id'].toString(),
-          name: data['name'].toString());
-      car.user = await car.getUser();
-      return car;
-    }
-
-    Future<User> getUser() async {
-      var user = await belongsTo('users');
-      return User.fromDB(user!);
-    }
-  }
-
-  //Then
-  var data = CarEloquent().find(1);
-  User carWithoutUser = Car(data);
-  User carWithUser = Car.withUser(data);
-
-  print(carWithoutUser.user); // null
-  print(carWithUser.user); // user model
-  ```
-
-### One-To-Many
-
-- ### Example Scenario
-
-  For example, **a user** may have **one or more cars** and **a car** belongs to **a user**.
-
-- ### Create foreign keys and extend and add mixin ( same as One-To-One)
-
-  See [above](#create-foreign-fields).
-
-- ### Determine which method to use in your model.
-
-  Since user has one or more cars and a car belongs to a user,
-  you can use `hasMany` in `User` class and `belongsTo` in `Car` class.
-
-  For user,
-
-  ```dart
-  class User extends Model with OneToMany{
-    factory User.fromDB(Map<String, Object?> user) {
-      return User(...);
-    }
-
-    Future<Car?> getCars() async {
-      var data = await hasMany('cars');
-      List<Car> cars = [];
-      for (var car in data) {
-        cars.add(Car.fromDB(car));
-      }
-      return cars;
-    }
-
-    static Future<User> withCars(Map<String, Object?> data) async {
-      var user = User(
-          id: int.parse(data['id'].toString()),
-          name: data['name'].toString(),
-          password: data['password'].toString(),
-          createdAt: DateTime.parse(data['createdAt'].toString()),
-          updatedAt: DateTime.parse(data['updatedAt'].toString()));
-      user.cars = await user.getCars();
-      return user;
-    }
-  }
-
-  //Then
-  var data = UserEloquent().find(1);
-  User userWithoutCars = User(data);
-  User userWithCars = User.withCar(data);
-
-  print(userWithoutCar.cars); // []
-  print(userWithCar.cars); // List<Car>
-  ```
-
-  For car,
-
-  ```dart
-  class Car extends Model with OneToOne{
-     factory Car.fromDB(Map<String, Object?> data) {
-      return Car( ... );
-    }
-
-    static Future<Car> withUser(Map<String, Object?> data) async {
-      var car = Car(
-          id: int.parse(data['id'].toString()),
-          userId: data['user_id'].toString(),
-          name: data['name'].toString());
-      car.user = await car.getUser();
-      return car;
-    }
-
-    Future<User> getUser() async {
-      var user = await belongsTo('users');
-      return User.fromDB(user!);
-    }
-  }
-
-  //Then
-  var data = CarEloquent().find(1);
-  User carWithoutUser = Car(data);
-  User carWithUser = Car.withUser(data);
-
-  print(carWithoutUser.user); // null
-  print(carWithUser.user); // user model
-  ```
+Please consider opening an issue in [issues tab](https://github.com/w99910/wazeloquent/issues) if you encounter a bug.
 
 ## Additional information
 

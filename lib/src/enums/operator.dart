@@ -1,1 +1,1 @@
-enum Operator { equal, greaterThan, lessThan, notEqual, like, inArray }
+enum Operator { equal, greaterThan, lessThan, notEqual, like, notLike, inArray }

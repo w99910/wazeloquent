@@ -79,56 +79,47 @@ mixin ManyToMany on RelationshipModel {
 
     var relatedParentValue = model.primaryValue;
 
-    // if (initialParentValue is String) {
-    //   initialParentValue = "'$initialParentValue'";
-    // }
-
-    // if (relatedParentValue is String) {
-    //   relatedParentValue = "'$relatedParentValue'";
-    // }
-
     Map<String, Object?> values = {
       "$_initialForeignKey": initialParentValue,
       "$_relatedForeignKey": relatedParentValue,
       if (extras != null) ...extras,
     };
 
-    // List<String> columns = [
-    //   _initialForeignKey!,
-    //   _relatedForeignKey!,
-    //   if (extras != null) ...extras.keys.toList()
-    // ];
-
-    // List values = [
-    //   initialParentValue,
-    //   relatedParentValue,
-    //   if (extras != null) ...extras.values.toList()
-    // ];
-
-    // String columnNames = '';
-    // for (var column in columns) {
-    //   columnNames += column;
-    //   if (column != columns[columns.length - 1]) {
-    //     columnNames += ',';
-    //   }
-    // }
-
-    // String valueString = '';
-    // for (var value in values.asMap().entries) {
-    //   // var val = value.value;
-    //   // if (val is String) {
-    //   //   val = '"${value.value}"';
-    //   // }
-    //   valueString += value.value;
-    //   if (value.key != values.length - 1) {
-    //     valueString += ',';
-    //   }
-    // }
-
-    // String q = 'INSERT INTO $_pivotTable ($columnNames) VALUES($valueString)';
-
     var database = await eloquent.getDatabase;
     return await database.insert(_pivotTable!, values);
+  }
+
+  /// Return a list of added indexes.
+  Future<List<int>> attachMany(List<RelationshipModel> models,
+      {Map<String, Object?>? extras}) async {
+    if (query == null) {
+      throw Exception('cannot query without relationship');
+    }
+
+    if (_pivotTable == null) {
+      throw Exception('Unknown Pivot table');
+    }
+
+    if (models.isEmpty) {
+      throw Exception('Empty models');
+    }
+
+    var initialParentValue = primaryValue;
+    var database = await eloquent.getDatabase;
+
+    List<int> indexes = [];
+    for (var model in models) {
+      var relatedParentValue = model.primaryValue;
+
+      Map<String, Object?> values = {
+        "$_initialForeignKey": initialParentValue,
+        "$_relatedForeignKey": relatedParentValue,
+        if (extras != null) ...extras,
+      };
+      indexes.add(await database.insert(_pivotTable!, values));
+    }
+
+    return indexes;
   }
 
   Future<int> detach({RelationshipModel? model}) async {

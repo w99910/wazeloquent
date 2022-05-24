@@ -1,4 +1,5 @@
 import 'package:example/eloquents/student.dart';
+import 'package:example/models/class.dart';
 import 'package:wazeloquent/wazeloquent.dart';
 
 class Student extends RelationshipModel with OneToOne, OneToMany, ManyToMany {
@@ -6,6 +7,7 @@ class Student extends RelationshipModel with OneToOne, OneToMany, ManyToMany {
   String name;
   DateTime? createdAt;
   DateTime? updatedAt;
+  final List<Class> classes = [];
   Student(
       {required this.id, required this.name, this.createdAt, this.updatedAt});
 
@@ -17,8 +19,24 @@ class Student extends RelationshipModel with OneToOne, OneToMany, ManyToMany {
         updatedAt: DateTime.parse(user['updatedAt'].toString()));
   }
 
-  Future<ManyToMany> classes() {
+  Future<ManyToMany> getClasses() {
     return belongsToMany('classes');
+  }
+
+  static Future<Student> withClasses(Map<String, Object?> data) async {
+    // print(json.decode(data['createdAt']));
+    var student = Student(
+        id: int.parse(data['id'].toString()),
+        name: data['name'].toString(),
+        createdAt: DateTime.parse(data['createdAt'].toString()),
+        updatedAt: DateTime.parse(data['updatedAt'].toString()));
+    var results = await (await student.getClasses()).get();
+    if (results != null) {
+      for (var classroom in results) {
+        student.classes.add(Class.fromDB(classroom));
+      }
+    }
+    return student;
   }
 
   @override

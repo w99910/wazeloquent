@@ -13,7 +13,7 @@ mixin OneToMany on RelationshipModel {
   ///   }
   /// }
   /// ```
-  Future<RelationshipModel> belongsTo(String parentTable,
+  Future<OneToMany> belongsTo(String parentTable,
       {String? foreignKey, String? parentKey}) async {
     String? _foreignKey;
     String? _parentKey;
@@ -76,7 +76,7 @@ mixin OneToMany on RelationshipModel {
   ///   }
   /// }
   /// ```
-  Future<RelationshipModel> hasMany(String childTable,
+  Future<OneToMany> hasMany(String childTable,
       {String? foreignKey, String? parentKey}) async {
     String? _foreignKey;
     String? _parentKey;
@@ -122,5 +122,30 @@ mixin OneToMany on RelationshipModel {
     query =
         '$childTable table1, $parentTable table2 WHERE table1.$_foreignKey = table2.$_parentKey AND table2.${eloquent.getPrimaryColumn} = "$primaryValue"';
     return this;
+  }
+
+  Future<List<int>> createMany(List<Map<String, Object?>> items) async {
+    if (items.isEmpty) {
+      throw Exception('Empty values');
+    }
+    if (query == null) {
+      throw Exception('cannot query without relationship');
+    }
+    String table = query!.split(' ')[0];
+    if (!(await eloquent.getColumnNames(table: table))
+        .contains(finalForeignKey)) {
+      throw Exception('cannot create parent data from child.');
+    }
+    final db = await eloquent.getDatabase;
+    List<int> ids = [];
+    for (var item in items) {
+      if (!item.keys.contains(finalForeignKey)) {
+        item[finalForeignKey!] = primaryValue;
+      }
+      ids.add(await db.insert(table, item));
+    }
+
+    resetAll();
+    return ids;
   }
 }
