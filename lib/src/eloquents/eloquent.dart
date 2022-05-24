@@ -1,6 +1,3 @@
-import 'dart:developer';
-
-import 'package:wazeloquent/src/enums/operator.dart';
 import 'package:wazeloquent/src/support/generator.dart';
 import 'package:wazeloquent/wazeloquent.dart';
 
@@ -226,12 +223,13 @@ abstract class Eloquent with Generator {
         where = where == '' ? key + ' = ?' : where + ' and ' + key + ' = ?';
         whereArgs.add(value);
       });
-      return await db.update(
+      await db.update(
           tableName,
           Map.fromEntries(
               inserts.entries.where((element) => element.key != 'isFavourite')),
           where: where,
           whereArgs: whereArgs);
+      return 0;
     }
     resetAll();
     return await db.insert(tableName, {...check, ...inserts});

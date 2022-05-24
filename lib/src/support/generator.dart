@@ -40,6 +40,14 @@ abstract class Generator {
   Future<List<Map<String, Object?>>> search(String keyword,
       {List<String>? searchableColumns});
 
+  /// Update data if exists and if not, create new row.
+  ///
+  /// ```dart
+  /// var userEloquent = UserEloquent();
+  ///
+  /// // if row where name is john exists, update 'password' column. If not, create row where name is john and password is 'pass'.
+  /// userEloquent.updateOrCreate(check:{'name':'john'},inserts:{'password':'pass'});
+  ///```
   Future<int> updateOrCreate(
       {required Map<String, Object?> check,
       required Map<String, Object?> inserts}) async {

@@ -7,13 +7,19 @@ abstract class Model {
 
   Map<String, Object?> get toJson;
 
+  setPrimaryValue(value);
+
   /// Create record in related table if not exists depending on primary value
   /// Otherwise update the values.
   Future<int> save() async {
-    return await eloquent
+    var status = await eloquent
         .where(eloquent.getPrimaryColumn, primaryValue)
         .updateOrCreate(
             check: {eloquent.getPrimaryColumn: primaryValue}, inserts: toJson);
+    if (status != 0) {
+      setPrimaryValue(status);
+    }
+    return status;
   }
 
   Future<int> update(Map<String, Object?> values) {

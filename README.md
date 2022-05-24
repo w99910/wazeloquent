@@ -460,11 +460,18 @@ Avaiable methods are
 
 - ### Saving Model
 
-  Save the updated properties of your model.
+  If model is already existed in table, update properties of the model.
+  Otherwise **create** a model.
 
   ```dart
+
+
   User user = User({name:'John',password:'pass'});
   user.name = 'Doe';
+  await user.save(); // Create new record. Primary value will be updated.
+
+   User user = User.fromDB(userEloquent.find(1));
+  user.name = 'Dean';
   await user.save(); // update the user's name to 'Doe' in table.
   ```
 

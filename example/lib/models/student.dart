@@ -51,4 +51,9 @@ class Student extends RelationshipModel with OneToOne, OneToMany, ManyToMany {
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String()
       };
+
+  @override
+  setPrimaryValue(value) {
+    id = value;
+  }
 }

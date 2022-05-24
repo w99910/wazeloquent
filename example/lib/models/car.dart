@@ -52,4 +52,9 @@ class Car extends RelationshipModel with OneToOne {
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String()
       };
+
+  @override
+  setPrimaryValue(value) {
+    id = value;
+  }
 }
