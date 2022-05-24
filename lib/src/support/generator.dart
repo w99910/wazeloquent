@@ -1,4 +1,3 @@
-import 'package:wazeloquent/src/eloquents/eloquent.dart';
 import 'package:wazeloquent/src/enums/operator.dart';
 import 'package:wazeloquent/src/enums/sort.dart';
 

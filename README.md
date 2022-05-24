@@ -464,8 +464,6 @@ Avaiable methods are
   Otherwise **create** a model.
 
   ```dart
-
-
   User user = User({name:'John',password:'pass'});
   user.name = 'Doe';
   await user.save(); // Create new record. Primary value will be updated.

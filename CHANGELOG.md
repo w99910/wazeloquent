@@ -1,3 +1,7 @@
+## 0.0.3+2
+
+- Updated doc.
+
 ## 0.0.3+1
 
 - `save` method in model now act like `updateOrCreate` method.
