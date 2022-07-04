@@ -155,8 +155,14 @@ abstract class Generator {
       var whereOr =
           _wheres.where((element) => element.conjunction == 'or').toList();
       for (var where in whereAnd.asMap().entries) {
-        String prefix = where.value.operator == 'IN' ? '(' : '"';
-        String postfix = where.value.operator == 'IN' ? ')' : '"';
+        String prefix =
+            where.value.operator == 'IN' || where.value.operator == 'NOT IN'
+                ? '('
+                : '"';
+        String postfix =
+            where.value.operator == 'IN' || where.value.operator == 'NOT IN'
+                ? ')'
+                : '"';
         q +=
             ' $table.${where.value.columnName} ${where.value.operator} $prefix${where.value.value}$postfix';
         if (where.key != _wheres.length - 1) {
@@ -164,8 +170,14 @@ abstract class Generator {
         }
       }
       for (var where in whereOr.asMap().entries) {
-        String prefix = where.value.operator == 'IN' ? '(' : '"';
-        String postfix = where.value.operator == 'IN' ? ')' : '"';
+        String prefix =
+            where.value.operator == 'IN' || where.value.operator == 'NOT IN'
+                ? '('
+                : '"';
+        String postfix =
+            where.value.operator == 'IN' || where.value.operator == 'NOT IN'
+                ? ')'
+                : '"';
         if (where.key == 0) {
           q += ' (';
         }
