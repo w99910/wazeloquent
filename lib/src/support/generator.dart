@@ -296,7 +296,7 @@ abstract class Generator {
         String temp = '';
         List values = value;
         values.asMap().entries.forEach((element) {
-          temp += element.value.toString();
+          temp += '"${element.value.toString()}"';
           if (element.key != values.length - 1) {
             temp += ',';
           }
@@ -311,7 +311,7 @@ abstract class Generator {
         String temp = '';
         List values = value;
         values.asMap().entries.forEach((element) {
-          temp += element.value.toString();
+          temp += '"${element.value.toString()}"';
           if (element.key != values.length - 1) {
             temp += ',';
           }

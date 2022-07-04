@@ -1,3 +1,7 @@
+## 0.0.4+2
+
+- Fix bug in which error happens when using `whereNotIn`.
+
 ## 0.0.4+1
 
 - Added `whereIn` and `whereNotIn` eloquent methods.
