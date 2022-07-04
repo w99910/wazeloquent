@@ -1,9 +1,8 @@
 name: wazeloquent
-description: WazEloquent is a flutter package in which you can interact with in-app “sqlite” database without a single sweat. 
-Save your time and have fun with ready-to-use Laravel Eloquent alike methods offered by package.
+description: WazEloquent is a flutter package in which you can interact with in-app “sqlite” database in the style of Laravel Eloquent.
 homepage: https://github.com/w99910/wazeloquent/tree/master
 repository: https://github.com/w99910/wazeloquent/tree/master
-version: 0.0.3+2
+version: 0.0.4+1
 
 environment:
   sdk: ">=2.16.2 <3.0.0"

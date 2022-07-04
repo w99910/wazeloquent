@@ -75,8 +75,9 @@ class _BasicState extends State<Basic> {
   updateUser() async {
     if (users.isNotEmpty) {
       User user = users.first;
-      var response = await userEloquent.where('id', user.id.toString())
-          // .take(1) //=> update the first result only.
+      var response = await userEloquent
+          .where('id', user.id)
+          .take(1) //=> update the first result only.
           .update({'name': names[Random().nextInt(names.length)]});
       showSnack('Total updated - ' + response.toString());
       loadUsers();

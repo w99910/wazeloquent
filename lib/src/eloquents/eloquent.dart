@@ -264,7 +264,9 @@ abstract class Eloquent with Generator {
       resetGroupBy();
       resetSelectedColunns();
       resetSort();
-      q = generateQuery(q);
+      var selectQuery =
+          generateQuery('Select $getPrimaryColumn from $tableName');
+      q += ' WHERE $tableName.$getPrimaryColumn IN ($selectQuery)';
       resetAll();
       final db = await getDatabase;
       return await db.rawUpdate(q);
@@ -293,11 +295,11 @@ abstract class Eloquent with Generator {
       resetDistinct();
       resetOrderBy();
       resetGroupBy();
-      resetLimit();
-      resetLimit();
       resetOffset();
-      query += generateQuery(' from $tableName');
-
+      var selectQuery =
+          generateQuery('Select $getPrimaryColumn from $tableName');
+      query +=
+          ' FROM $tableName WHERE $tableName.$getPrimaryColumn IN ($selectQuery)';
       resetAll();
 
       Database _db = await getDatabase;

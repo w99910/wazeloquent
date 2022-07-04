@@ -16,7 +16,7 @@ import 'package:wazeloquent/wazeloquent.dart';
 void main() async {
   var db = DB.instance;
 
-  // WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
 
   // You can use existing db by specify file path and file name.
   // var path = await getApplicationDocumentsDirectory();
@@ -24,7 +24,7 @@ void main() async {
   // db.setFilePath(dir, shouldForceCreatePath: true);
 
   db.setDbVersion(1); // set db version
-  db.setFileName('test-0.1.2.db'); // set file
+  db.setFileName('test.db'); // set file
   db.onCreate([
     UserEloquent.onCreate,
     CarEloquent.onCreate,

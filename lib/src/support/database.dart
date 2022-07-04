@@ -208,7 +208,7 @@ class DB {
     } else {
       dbPath = Platform.isAndroid
           ? await getDatabasesPath()
-          : (await getApplicationDocumentsDirectory()).toString();
+          : (await getApplicationDocumentsDirectory()).absolute.path + '/';
     }
 
     final path = join(dbPath! + fileName);
