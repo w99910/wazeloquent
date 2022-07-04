@@ -292,6 +292,21 @@ abstract class Generator {
         value = temp;
         _operator = 'IN';
         break;
+      case Operator.notInArray:
+        if (value is! List) {
+          throw Exception('Value must be List type.');
+        }
+        String temp = '';
+        List values = value;
+        values.asMap().entries.forEach((element) {
+          temp += element.value.toString();
+          if (element.key != values.length - 1) {
+            temp += ',';
+          }
+        });
+        value = temp;
+        _operator = 'NOT IN';
+        break;
     }
     _wheres.add(_Where(
         columnName: columnName,
@@ -313,6 +328,20 @@ abstract class Generator {
       throw Exception('Column "$columnName" not found');
     }
     return where(columnName, values, operator: Operator.inArray);
+  }
+
+  /// Get all records of which `columnName` does not include any of `values`.
+  /// ```
+  /// var userEloquent = UserEloquent();
+  ///
+  /// // get users where column `id` does not equal any of values [1,2,4]
+  /// userEloquent.whereNotIn('id',[1,2,4]).get();
+  /// ```
+  Generator whereNotIn(String columnName, List values) {
+    if (!columns.contains(columnName)) {
+      throw Exception('Column "$columnName" not found');
+    }
+    return where(columnName, values, operator: Operator.notInArray);
   }
 
   /// Sort rows in either descending or ascending order.

@@ -1,3 +1,11 @@
+## 0.0.4+1
+
+- Added `whereIn` and `whereNotIn` eloquent methods.
+
+## 0.0.4
+
+- Fix `limit()` or `order()` not working when `update` or `delete`.
+
 ## 0.0.3+2
 
 - Updated doc.

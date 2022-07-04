@@ -11,6 +11,12 @@ WazEloquent is designed to deal with database without writing custom querys on y
 
 ## Getting started
 
+- ### Install package
+
+  ```bash
+  $ flutter pub add wazeloquent
+  ```
+
 - ### Extend eloquent and configure required methods
 
   e.g
@@ -136,6 +142,7 @@ Available methods are as follows.
 
 - [where](#where)
 - [whereIn](#whereIn)
+- [whereNotIn](#whereNotIn)
 - [orderBy](#orderby)
 - [orderByDesc](#orderbyDesc)
 - [groupBy](#groupBy)
@@ -170,16 +177,31 @@ Available methods are as follows.
 
   //get users where name is john
   userEloquent.where('name','john').get();
+  ```
 
-  //get users where name is john and createdAt greater than   2022-05-03
-  userEloquent.where('name','john').where('createdAt','2022-05-03', operator:Operator.greaterThan).get();
+  You can also specify which operator to use when querying. For example
 
+  ```dart
   //get users where name is not john
   userEloquent.where('name','john',operator:Operator.notEqual).get();
 
   //get users where name has 'j'
   userEloquent.where('name','%j%',operator:Operator.like).get();
+
+  //get users where name is john and createdAt greater than 2022-05-03
+  userEloquent.where('name','john').where('createdAt','2022-05-03',operator:Operator.greaterThan).get();
   ```
+
+  Available operators are
+
+  - `Operator.equal`
+  - `Operator.greaterThan`
+  - `Operator.lessThan`
+  - `Operator.notEqual`
+  - `Operator.like`
+  - `Operator.notLike`
+  - `Operator.inArray`
+  - `Operator.notInArray`
 
 - ### whereIn
 
@@ -190,6 +212,17 @@ Available methods are as follows.
 
   // get users where column `id` matches any of values [1,2,4]
   userEloquent.whereIn('id',[1,2,4]).get();
+  ```
+
+- ### whereNotIn
+
+  Get all records of which column does not include any of the provided values.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  // get users where column `id` does not equal any of values [1,2,4]
+  userEloquent.whereNotIn('id',[1,2,4]).get();
   ```
 
 - ### orderBy
