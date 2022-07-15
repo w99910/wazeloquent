@@ -25,7 +25,7 @@ class ColumnType {
 }
 
 class DB {
-  static String _fileName = 'sqflite.db';
+  static String _fileName = 'wazeloquent.db';
   static int _version = 1;
   static String? _filePath;
   static bool _shouldForceCreatePath = false;

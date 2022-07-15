@@ -1,3 +1,5 @@
+![WazEloquent](/wazeloquent.png)
+
 # WazEloquent ( Laravel Eloquent Wrapper For Flutter )
 
 WazEloquent is designed to deal with database without writing custom querys on your own. This package is built on top of [Sqflite](https://github.com/tekartik/sqflite/tree/master/sqflite) package and inspired by [Laravel](https://laravel.com) eloquent.
@@ -535,6 +537,8 @@ Please consider opening an issue in [issues tab](https://github.com/w99910/wazel
 ## Additional information
 
 > Check example [here](https://github.com/w99910/wazeloquent/tree/master/example)
+
+> Read [article](https://medium.com/@hello.waz99) about wazeloquent.
 
 This package is developed to help developers' lives better and save time.
 <br>

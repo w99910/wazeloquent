@@ -1,3 +1,7 @@
+## 0.0.4+3
+
+- Fix bugs.
+
 ## 0.0.4+2
 
 - Fix bug in which error happens when using `whereNotIn`.
