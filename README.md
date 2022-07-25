@@ -536,9 +536,9 @@ Please consider opening an issue in [issues tab](https://github.com/w99910/wazel
 
 ## Additional information
 
-> Check example [here](https://github.com/w99910/wazeloquent/tree/master/example)
+- Check example [here](https://github.com/w99910/wazeloquent/tree/master/example)
 
-> Read [article](https://medium.com/@hello.waz99) about wazeloquent.
+- Read [article](https://medium.com/@hello.waz99) about CRUD with wazeloquent.
 
 This package is developed to help developers' lives better and save time.
 <br>
