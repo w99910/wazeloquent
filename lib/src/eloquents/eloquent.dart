@@ -68,7 +68,7 @@ abstract class Eloquent with Generator {
   /// userEloquent.get();
   /// ```
   @override
-  Future<List<Map<String, Object?>>?> get() async {
+  Future<List<Map<String, Object?>>> get() async {
     String q = 'Select';
     try {
       String selectedColumns = getSelectedColumns() ?? '*';

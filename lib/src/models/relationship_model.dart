@@ -14,7 +14,7 @@ abstract class RelationshipModel extends Model with Generator {
     pivotTable = null;
     finalForeignKey = null;
     finalParentKey = null;
-    query = null;
+    // query = null;
     super.resetAll();
   }
 
@@ -62,7 +62,7 @@ abstract class RelationshipModel extends Model with Generator {
   /// await query.get();
   /// ```
   @override
-  Future<List<Map<String, Object?>>?> get() async {
+  Future<List<Map<String, Object?>>> get() async {
     if (query == null) {
       throw Exception('cannot query without relationship');
     }

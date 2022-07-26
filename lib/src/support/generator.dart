@@ -26,9 +26,17 @@ abstract class Generator {
 
   List<_Where> _wheres = [];
 
-  Future<List<Map<String, Object?>>?> get();
+  Future<List<Map<String, Object?>>> get();
 
   Future<List<Map<String, Object?>>> all();
+
+  Future<Map<String, Object?>?> first() async {
+    var values = await get();
+    if (values.isEmpty) {
+      return null;
+    }
+    return values.first;
+  }
 
   Future<int> create(Map<String, Object?> values);
 

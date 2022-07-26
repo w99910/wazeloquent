@@ -1,3 +1,18 @@
+## 0.0.5
+
+- Relationship query can now be executed using single variable.
+
+  ```dart
+  var user = User();
+  var query = user.car();
+  query.create({});
+  query.get();
+  query.delete();
+  ```
+
+- Added `first` method.
+- Edit returned type in `get` abstract method.
+
 ## 0.0.4+3
 
 - Fix bugs.

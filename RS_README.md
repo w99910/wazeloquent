@@ -40,6 +40,7 @@ Then you can use not only methods supported by `Model` but also almost all metho
 - [distinct](README.md#distinct)
 - [all](README.md#all)
 - [get](README.md#get)
+- [first](README.md#first)
 - [select](README.md#select)
 - [search](README.md#search)
 - [create](README.md#create)
@@ -576,3 +577,10 @@ You can use multiple relationships in the same model. Eg,
 ```dart
 class User extends RelationshipModel with OneToOne,OneToMany,ManyToMany{}
 ```
+
+## Additional Information
+
+- Check example [here](https://github.com/w99910/wazeloquent/tree/master/example)
+
+- Read [article](https://medium.com/@hello.waz99/laravel-eloquent-in-flutter-cf8c88ca6f80) about CRUD with wazeloquent.
+- Read [article](https://medium.com/@hello.waz99/wazeloquent-one-to-one-relationship-in-flutter-5a776dc299da) about one-to-one relationship with wazeloquent.

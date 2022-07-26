@@ -155,6 +155,7 @@ Available methods are as follows.
 - [distinct](#distinct)
 - [all](#all)
 - [get](#get)
+- [first](#first)
 - [select](#select)
 - [find](#find)
 - [search](#search)
@@ -346,6 +347,16 @@ Available methods are as follows.
   userEloquent.get();
   ```
 
+- ### first
+
+  Get the first object instead of using `get`, `all`, `search`.
+
+  ```dart
+  var userEloquent = UserEloquent();
+
+  Map<String,Object?>? user = await userEloquent.first();
+  ```
+
 - ### select
 
   Select columns to be returned in results.
@@ -472,20 +483,44 @@ It is not mandatory for your models to extend `Model` class. But extending `Mode
 
 Let your model extend `Model` class.
 
-```dart
+````dart
 class User extends Model{
-  //configure required methods.
    Eloquent get eloquent => UserEloquent();
 
   dynamic get primaryValue => id; // primary value is the value of primary column.
 
+
+  /// Structure the object to be inserted when executing `save` method.
+  ///
+  /// For more information, see `save` method.
   Map<String, Object?> get toJson => {
     'name': name,
     'createdAt': createdAt?.toIso8601String(),
     'updatedAt': updatedAt?.toIso8601String()
   };
+
+
+  /// Update the primary value automatically when `save` method is executed.
+  ///
+  /// For example,
+  /// ```dart
+  /// // user.dart
+  /// setPrimaryValue(value){
+  ///   id = value;
+  /// }
+  ///
+  /// var user = User(name:'John');
+  /// // The above record does not exist in table. So let's create record using save() method
+  /// user.save();
+  ///
+  /// // So user.id will be the primary value of inserted record in table.
+  ///
+  /// ```
+  setPrimaryValue(value){
+      id = value;
+  }
 }
-```
+````
 
 Avaiable methods are
 
@@ -538,7 +573,8 @@ Please consider opening an issue in [issues tab](https://github.com/w99910/wazel
 
 - Check example [here](https://github.com/w99910/wazeloquent/tree/master/example)
 
-- Read [article](https://medium.com/@hello.waz99) about CRUD with wazeloquent.
+- Read [article](https://medium.com/@hello.waz99/laravel-eloquent-in-flutter-cf8c88ca6f80) about CRUD with wazeloquent.
+- Read [article](https://medium.com/@hello.waz99/wazeloquent-one-to-one-relationship-in-flutter-5a776dc299da) about one-to-one relationship with wazeloquent.
 
 This package is developed to help developers' lives better and save time.
 <br>
