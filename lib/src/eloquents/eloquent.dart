@@ -144,7 +144,7 @@ abstract class Eloquent with Generator {
           where(column, _key, operator: Operator.like, conjuncation: 'or');
         }
       }
-      q += generateQuery(getSelectedColumns() ?? '*');
+      q += generateQuery(getSelectedColumns() ?? ' * from $tableName');
       resetAll();
       Database _db = await getDatabase;
       return await _db.rawQuery(q);

@@ -1,3 +1,7 @@
+## 0.0.5+1
+
+- Fixed bugs
+
 ## 0.0.5
 
 - Relationship query can now be executed using single variable.

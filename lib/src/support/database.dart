@@ -14,6 +14,8 @@ import 'package:sqflite/sqflite.dart';
 
 enum DBActions { setNull, setDefault, restrict, noAction, cascade }
 
+enum _DBProcess { onCreate, onOpen, onConfigure, onUpgrade, onDowngrade }
+
 class ColumnType {
   static const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
   static const notNull = 'NOT NULL';
@@ -22,6 +24,17 @@ class ColumnType {
   static const boolType = 'BOOLEAN';
   static const integerType = 'INTEGER';
   static const stringType = 'TEXT';
+
+  static String enumToString(List<String> types) {
+    if (types.isEmpty) {
+      return '';
+    }
+    var string = '';
+    for (var type in types) {
+      string += ' $type';
+    }
+    return string;
+  }
 }
 
 class DB {
@@ -71,6 +84,8 @@ class DB {
   final List<Future<Function(Database)>> _onConfigure = [];
   final List<Future<Function(Database, int, int)>> _onUpgrade = [];
   final List<Future<Function(Database, int, int)>> _onDowngrade = [];
+
+  final Map<_DBProcess, List<String>> _queries = {};
 
   static Database? _database;
 
@@ -173,6 +188,8 @@ class DB {
     return _database!;
   }
 
+  /// Create table using helper method
+  ///
   static Future createTable(Database db,
       {required String tableName,
       required Map<String, Object?> columns}) async {
@@ -193,6 +210,25 @@ class DB {
       }
     });
     await db.execute('CREATE TABLE IF NOT EXISTS $tableName (' + string + ' )');
+  }
+
+  static Future addColumn(
+    String columnName, {
+    required String tableName,
+    required Database db,
+    required List<String> types,
+    DBActions? onUpdate,
+    DBActions? onDelete,
+  }) async {
+    var type = ColumnType.enumToString(types);
+    String query = 'ALTER TABLE $tableName ADD $columnName $type';
+    if (onUpdate != null) {
+      query += ' ON UPDATE ' + getAction(onUpdate) + '\n';
+    }
+    if (onDelete != null) {
+      query += ' ON DELETE ' + getAction(onDelete) + '\n';
+    }
+    await db.execute(query);
   }
 
   Future<Database> _initDB({required String fileName}) async {
@@ -220,21 +256,61 @@ class DB {
       for (var fn in _onCreate) {
         Function.apply(await fn, [db, version]);
       }
+      if (_queries.containsKey(_DBProcess.onCreate)) {
+        List<String> queries = _queries[_DBProcess.onCreate]!;
+        if (queries.isNotEmpty) {
+          for (var query in queries) {
+            await db.execute(query);
+          }
+        }
+      }
     }, onOpen: (Database db) async {
       for (var fn in _onOpen) {
         Function.apply(await fn, [db]);
+      }
+      if (_queries.containsKey(_DBProcess.onOpen)) {
+        List<String> queries = _queries[_DBProcess.onOpen]!;
+        if (queries.isNotEmpty) {
+          for (var query in queries) {
+            await db.execute(query);
+          }
+        }
       }
     }, onConfigure: (Database db) async {
       for (var fn in _onConfigure) {
         Function.apply(await fn, [db]);
       }
+      if (_queries.containsKey(_DBProcess.onConfigure)) {
+        List<String> queries = _queries[_DBProcess.onConfigure]!;
+        if (queries.isNotEmpty) {
+          for (var query in queries) {
+            await db.execute(query);
+          }
+        }
+      }
     }, onUpgrade: (Database db, int oldVersion, int newVersion) async {
       for (var fn in _onUpgrade) {
         Function.apply(await fn, [db, oldVersion, newVersion]);
       }
+      if (_queries.containsKey(_DBProcess.onUpgrade)) {
+        List<String> queries = _queries[_DBProcess.onUpgrade]!;
+        if (queries.isNotEmpty) {
+          for (var query in queries) {
+            await db.execute(query);
+          }
+        }
+      }
     }, onDowngrade: (Database db, int oldVersion, int newVersion) async {
       for (var fn in _onDowngrade) {
         Function.apply(await fn, [db, oldVersion, newVersion]);
+      }
+      if (_queries.containsKey(_DBProcess.onDowngrade)) {
+        List<String> queries = _queries[_DBProcess.onDowngrade]!;
+        if (queries.isNotEmpty) {
+          for (var query in queries) {
+            await db.execute(query);
+          }
+        }
       }
     });
   }

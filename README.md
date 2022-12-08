@@ -576,6 +576,12 @@ Please consider opening an issue in [issues tab](https://github.com/w99910/wazel
 - Read [article](https://medium.com/@hello.waz99/laravel-eloquent-in-flutter-cf8c88ca6f80) about CRUD with wazeloquent.
 - Read [article](https://medium.com/@hello.waz99/wazeloquent-one-to-one-relationship-in-flutter-5a776dc299da) about one-to-one relationship with wazeloquent.
 
+## Support Me
+
+If you want to support me, buy me a coffee via **Binance**.
+
+<img src="https://zawlintun.me/BinancePayQR.png" alt="binancePayQR" width="200"/>
+
 This package is developed to help developers' lives better and save time.
 <br>
 I would be really happy if this package helps you. Cheers 🎉🎉
